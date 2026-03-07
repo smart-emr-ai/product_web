@@ -58,7 +58,7 @@ export default function App() {
       title: "把时间还给病人，把文书交给 AI。",
       subtitle: "由德国 AI 博士团队与三甲临床专家深度联合，为医生打造的病历生成辅助层。",
       visualPrompt: "[Nano Banana Prompt]: Professional photography, a doctor in a clean white coat working in a modern clinical setting with soft natural window light, looking attentively at a patient (out of frame). High end medical environment, cinematic lighting, medical blue and white tones, depth of field, 8k resolution, photorealistic. Overlay a semi-transparent futuristic UI card floating with clinical text.",
-      image: "/hero_1.png",
+      image: `${import.meta.env.BASE_URL}hero_1.png`,
       bgPosition: "center 10%",
       bgSize: "cover",
       bgColor: "#0f172a",
@@ -68,7 +68,7 @@ export default function App() {
       title: "每一次自然对谈，都是一份标准病历。",
       subtitle: "实时语义理解、清洗与结构化，一键生成符合国家标准的甲级病历文书。",
       visualPrompt: "[Nano Banana Prompt]: A glowing futuristic 3D funnel diagram in a super clean white studio environment. Top of the funnel shows scattered audio wave icons, the middle shows AI neural network nodes glowing in medical blue, and the bottom outputs neat, structured medical documents. Glassmorphism style, isometric 3D, volumetric lighting, tech-medical aesthetic, highly detailed.",
-      image: "/hero_2.png",
+      image: `${import.meta.env.BASE_URL}hero_2.png`,
       bgPosition: "120% 30%",
       bgSize: "auto 130%",
       bgColor: "#ffffff",
@@ -558,7 +558,7 @@ export default function App() {
             {/* Munich Skyline Watermark */}
             <div className="mt-6 md:mt-auto relative w-full flex-grow min-h-[160px] md:min-h-[240px] overflow-hidden pointer-events-none z-0">
                 <img 
-                   src="/munich_silhouette.png?v=5" 
+                   src={`${import.meta.env.BASE_URL}munich_silhouette.png?v=5`} 
                    alt="Munich Skyline Watermark" 
                    className="absolute bottom-0 right-[-10%] md:right-[-5%] w-[110%] md:w-[90%] max-w-none opacity-[0.11] mix-blend-multiply transition-transform duration-1000 origin-bottom group-hover:scale-[1.04] translate-y-[28%]" 
                 />
