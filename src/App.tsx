@@ -57,13 +57,21 @@ export default function App() {
       title: "把时间还给病人，把文书交给 AI。",
       subtitle: "由德国 AI 博士团队与三甲临床专家深度联合，为医生打造的病历生成辅助层。",
       visualPrompt: "[Nano Banana Prompt]: Professional photography, a doctor in a clean white coat working in a modern clinical setting with soft natural window light, looking attentively at a patient (out of frame). High end medical environment, cinematic lighting, medical blue and white tones, depth of field, 8k resolution, photorealistic. Overlay a semi-transparent futuristic UI card floating with clinical text.",
+      image: "/hero_1.png",
+      bgPosition: "center 10%",
+      bgSize: "cover",
+      bgColor: "#0f172a",
       uiType: "card"
     },
     {
       title: "每一次自然对谈，都是一份标准病历。",
       subtitle: "实时语义理解、清洗与结构化，一键生成符合国家标准的甲级病历文书。",
       visualPrompt: "[Nano Banana Prompt]: A glowing futuristic 3D funnel diagram in a super clean white studio environment. Top of the funnel shows scattered audio wave icons, the middle shows AI neural network nodes glowing in medical blue, and the bottom outputs neat, structured medical documents. Glassmorphism style, isometric 3D, volumetric lighting, tech-medical aesthetic, highly detailed.",
-      uiType: "funnel"
+      image: "/hero_2.png",
+      bgPosition: "120% 30%",
+      bgSize: "auto 130%",
+      bgColor: "#ffffff",
+      uiType: "none"
     }
   ];
 
@@ -99,93 +107,115 @@ export default function App() {
       </nav>
 
       {/* Hero Section */}
-      <section id="hero" className="relative pt-32 pb-20 lg:pt-40 lg:pb-32 overflow-hidden hero-gradient min-h-[90vh] flex items-center">
-        <div className="absolute inset-0 z-0 flex items-center justify-center opacity-30 pointer-events-none">
-          {/* Decorative background blobs */}
-          <div className="absolute top-[20%] right-[10%] w-[500px] h-[500px] rounded-full bg-blue-400/20 blur-[100px]" />
-          <div className="absolute bottom-[20%] left-[10%] w-[400px] h-[400px] rounded-full bg-indigo-300/20 blur-[80px]" />
+      <section id="hero" className="relative pt-32 pb-20 lg:pt-40 lg:pb-32 overflow-hidden min-h-[90vh] lg:min-h-[100vh] flex items-center bg-slate-900">
+        
+        {/* Full Bleed Background Images with Crossfade */}
+        <div className="absolute inset-0 z-0">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={heroIndex}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 1 }}
+              className="absolute inset-0 bg-no-repeat transition-colors duration-700"
+              style={{ 
+                backgroundImage: `url(${heroContent[heroIndex].image})`,
+                backgroundPosition: heroContent[heroIndex].bgPosition,
+                backgroundSize: heroContent[heroIndex].bgSize || 'cover',
+                backgroundColor: heroContent[heroIndex].bgColor || 'transparent'
+              }}
+            />
+          </AnimatePresence>
+          {/* Deep Blue Gradient Mask: Left opaque, Right transparent */}
+          <div className="absolute inset-0 z-10 bg-gradient-to-r from-[rgba(0,25,70,0.95)] via-[rgba(0,30,80,0.65)] to-[rgba(0,30,80,0.1)] pointer-events-none" />
         </div>
 
-        <div className="max-w-7xl mx-auto px-6 relative z-10 w-full">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            
-            <div className="max-w-xl">
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={heroIndex}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  transition={{ duration: 0.5, ease: "easeOut" }}
-                >
-                  <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold leading-[1.15] text-slate-900 mb-6 tracking-tight">
-                    {heroContent[heroIndex].title}
-                  </h1>
-                  <p className="text-lg text-slate-600 leading-relaxed mb-8">
-                    {heroContent[heroIndex].subtitle}
-                  </p>
-                  <a href="#contact" className="inline-flex items-center justify-center px-8 py-4 rounded-full bg-primary-500 text-white font-medium text-lg hover:bg-primary-600 transition-all hover:shadow-[0_0_20px_rgba(0,74,153,0.3)] gap-2 group">
-                    申请科室试用
-                    <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                  </a>
-                </motion.div>
-              </AnimatePresence>
+        <div className="max-w-7xl mx-auto px-6 relative z-20 w-full">
+          <div className="max-w-2xl">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={heroIndex}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.5, ease: "easeOut" }}
+              >
+                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold leading-[1.15] text-white mb-6 tracking-tight">
+                  {heroContent[heroIndex].title}
+                </h1>
+                <p className="text-lg text-blue-100/90 leading-relaxed mb-8 font-light">
+                  {heroContent[heroIndex].subtitle}
+                </p>
+                <a href="#contact" className="inline-flex items-center justify-center px-8 py-4 rounded-full bg-primary-500 text-white font-medium text-lg hover:bg-primary-600 transition-all hover:shadow-[0_0_20px_rgba(0,74,153,0.5)] gap-2 group border border-white/10">
+                  申请科室试用
+                  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                </a>
+              </motion.div>
+            </AnimatePresence>
 
-              {/* Carousel Indicators */}
-              <div className="flex gap-2 mt-12">
-                {heroContent.map((_, idx) => (
-                  <button 
-                    key={idx}
-                    onClick={() => setHeroIndex(idx)}
-                    className={cn(
-                      "w-12 h-1.5 rounded-full transition-all duration-300",
-                      idx === heroIndex ? "bg-primary-500" : "bg-slate-300 hover:bg-slate-400"
-                    )}
-                    aria-label={`Go to slide ${idx + 1}`}
-                  />
-                ))}
-              </div>
-            </div>
-
-            <div className="relative h-[480px] w-full lg:h-[600px] rounded-2xl overflow-hidden glass-panel flex flex-col items-center justify-center p-8 text-center bg-slate-100 relative group">
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={heroIndex}
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.95 }}
-                  transition={{ duration: 0.5 }}
-                  className="w-full h-full flex flex-col items-center justify-center"
-                >
-                  <div className="text-sm font-medium text-slate-400 mb-4 px-4 py-1 rounded-full border border-slate-200 bg-white shadow-sm">
-                    Image Placeholder
-                  </div>
-                  <p className="text-slate-500 text-sm max-w-sm border border-dashed border-slate-300 p-4 rounded-xl font-mono leading-relaxed">
-                    {heroContent[heroIndex].visualPrompt}
-                  </p>
-                  
-                  {heroContent[heroIndex].uiType === 'card' && (
-                    <motion.div 
-                      className="absolute right-[-20px] bottom-10 glass-panel p-4 rounded-xl w-64 text-left shadow-2xl"
-                      animate={{ y: [0, -10, 0] }}
-                      transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                    >
-                      <div className="flex items-center gap-2 mb-2">
-                        <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                        <div className="text-xs font-semibold text-slate-500">AI 正在生成病历...</div>
-                      </div>
-                      <div className="space-y-2">
-                        <div className="h-2 w-full bg-slate-200 rounded-full" />
-                        <div className="h-2 w-4/5 bg-slate-200 rounded-full" />
-                        <div className="h-2 w-5/6 bg-slate-200 rounded-full" />
-                      </div>
-                    </motion.div>
+            {/* Carousel Indicators */}
+            <div className="flex gap-2 mt-12">
+              {heroContent.map((_, idx) => (
+                <button 
+                  key={idx}
+                  onClick={() => setHeroIndex(idx)}
+                  className={cn(
+                    "w-12 h-1.5 rounded-full transition-all duration-300",
+                    idx === heroIndex ? "bg-white" : "bg-white/30 hover:bg-white/50"
                   )}
-                </motion.div>
-              </AnimatePresence>
+                  aria-label={`Go to slide ${idx + 1}`}
+                />
+              ))}
             </div>
-
           </div>
+        </div>
+
+        {/* Floating AI Generation Card - Bottom Right (1/3) with Glassmorphism */}
+        <div className="absolute right-[5%] lg:right-[15%] bottom-[5%] lg:bottom-[15%] z-30 hidden md:block">
+          <AnimatePresence mode="wait">
+            {heroContent[heroIndex].uiType === 'card' && (
+              <motion.div 
+                key="card-1"
+                className="bg-[rgba(0,15,35,0.4)] backdrop-blur-xl border border-white/20 p-6 lg:p-8 rounded-2xl w-80 lg:w-[420px] text-left shadow-[0_20px_50px_rgba(0,0,0,0.5)]"
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 10 }}
+                transition={{ duration: 0.8, ease: "easeOut" }}
+              >
+                <div className="flex items-center gap-3 mb-5 pb-4 border-b border-white/10">
+                  <div className="w-2.5 h-2.5 rounded-full bg-blue-400 animate-pulse shadow-[0_0_8px_rgba(96,165,250,0.8)]" />
+                  <div className="text-sm font-semibold text-white tracking-wide">结构化病历生成中...</div>
+                </div>
+                <div className="space-y-4 font-mono text-sm text-blue-50/90 leading-relaxed font-light">
+                  <motion.div
+                    initial={{ width: 0, opacity: 0 }}
+                    animate={{ width: "100%", opacity: 1 }}
+                    transition={{ delay: 0.5, duration: 2, ease: "linear" }}
+                    className="overflow-hidden whitespace-nowrap block"
+                  >
+                    <span className="text-blue-400 mr-2">▶</span>深度识别临床上下文逻辑...
+                  </motion.div>
+                  <motion.div
+                    initial={{ width: 0, opacity: 0 }}
+                    animate={{ width: "100%", opacity: 1 }}
+                    transition={{ delay: 2.5, duration: 1.5, ease: "linear" }}
+                    className="overflow-hidden whitespace-nowrap block"
+                  >
+                    <span className="text-blue-400 mr-2">▶</span>自动映射 HIS 系统标准化字段...
+                  </motion.div>
+                  <motion.div
+                    initial={{ width: 0, opacity: 0 }}
+                    animate={{ width: "100%", opacity: 1 }}
+                    transition={{ delay: 4.0, duration: 1.0, ease: "linear" }}
+                    className="overflow-hidden whitespace-nowrap block text-blue-300 font-medium"
+                  >
+                    <span className="text-blue-400 mr-2">▶</span>生成临床甲级病历。
+                  </motion.div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </section>
 
@@ -375,7 +405,7 @@ export default function App() {
             <div>
               <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-6 tracking-tight">每一个科室，都有自己的思维模型。</h2>
               <p className="text-slate-600 text-lg mb-10 leading-relaxed">
-                我们不粗暴改变您的习惯。系统作为现有 HIS 的超级外挂存在，高度适应科室特定的术语体系与模板格式。
+                我们不改变您的工作习惯。系统集成在现有医疗信息系统中，高度适应科室特定的术语体系与中西医模板格式。
               </p>
 
               <div className="space-y-6">
@@ -385,7 +415,7 @@ export default function App() {
                   </div>
                   <div>
                     <h4 className="font-semibold text-slate-800 mb-1">无感工作流嵌入</h4>
-                    <p className="text-slate-500 text-sm">不推翻现有传统 HIS 系统，作为其录入层插件静默运作，学习成本极低。</p>
+                    <p className="text-slate-500 text-sm">不推翻现有传统 HIS 系统，作为其录入层插件静默运作，转化成本极低。</p>
                   </div>
                 </div>
                 <div className="flex gap-4">
@@ -394,7 +424,7 @@ export default function App() {
                   </div>
                   <div>
                     <h4 className="font-semibold text-slate-800 mb-1">专属数据飞轮</h4>
-                    <p className="text-slate-500 text-sm">医生每一次对于结果的微调，都在训练科室专有小模型，让系统越来越懂您的遣词造句。</p>
+                    <p className="text-slate-500 text-sm">每一次对病历的更改，都是在完成一次临床思维的同步。系统会实时沉淀您的表达习惯，让 AI 随您的诊疗风格深度进化</p>
                   </div>
                 </div>
                 <div className="flex gap-4">
@@ -403,7 +433,7 @@ export default function App() {
                   </div>
                   <div>
                     <h4 className="font-semibold text-slate-800 mb-1">三甲级私有底座</h4>
-                    <p className="text-slate-500 text-sm">支持私有化部署方案，等保备案通过，完全满足三甲医院严苛的数据出域合规要求。</p>
+                    <p className="text-slate-500 text-sm">支持私有云部署方案，等保备案通过，满足三甲医院严苛的数据出域合规要求。</p>
                   </div>
                 </div>
               </div>
@@ -502,12 +532,12 @@ export default function App() {
 
           {/* Team */}
           <div className="flex flex-col justify-start h-full relative group">
-            <h3 className="text-2xl font-bold mb-8 text-slate-900 relative z-10">我们的团队背景</h3>
+            <h3 className="text-2xl font-bold mb-8 text-slate-900 relative z-10">我们的团队</h3>
             <div className="space-y-8 relative pl-6 border-l-2 border-slate-100 z-10">
               <div className="relative">
                 <div className="absolute -left-[33px] top-1 w-4 h-4 rounded-full bg-white border-4 border-primary-500" />
                 <h4 className="text-lg font-bold text-slate-800 flex items-center gap-2">
-                  顶尖技术基因
+                  顶尖技术背景
                 </h4>
                 <p className="mt-2 text-slate-600 leading-relaxed text-sm">
                   核心研发成员均来自德国慕尼黑工业大学人工智能领域硕博团队，长期深耕企业级复杂数据系统与前沿大语言模型微调算法，拥有千万级工业数据处理经验。
