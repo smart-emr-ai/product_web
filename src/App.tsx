@@ -18,6 +18,7 @@ export default function App() {
   const [activeDepartment, setActiveDepartment] = useState(0);
   const [heroIndex, setHeroIndex] = useState(0);
   const [solutionIndex, setSolutionIndex] = useState(0);
+  const [formStatus, setFormStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
 
   const solutionScenarios = [
     {
@@ -576,48 +577,78 @@ export default function App() {
               提交您的专业信息，我们的临床实施顾问将会在 24 小时内与您取得联系，安排专属演示方案。
             </p>
             
-            {/* Real Form submitting to formspree (user will replace URL in production) */}
-            <form 
-              action="https://formspree.io/f/xyzkbwpg" 
-              method="POST" 
-              className="max-w-md mx-auto relative z-10 space-y-4"
-              onSubmit={() => {
-                // If you want standard redirect, keep it. 
-                // Using standard HTML submission for simplicity of "免后端"
-              }}
-            >
-              <input 
-                type="text" 
-                name="name" 
-                required 
-                placeholder="您的姓名" 
-                className="w-full px-5 py-3 rounded-xl bg-white/10 border border-white/20 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-white/50 transition-all font-medium"
-              />
-              <input 
-                type="text" 
-                name="hospital" 
-                required 
-                placeholder="所属医院及科室" 
-                className="w-full px-5 py-3 rounded-xl bg-white/10 border border-white/20 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-white/50 transition-all font-medium"
-              />
-              <input 
-                type="tel" 
-                name="phone" 
-                required 
-                placeholder="联系电话" 
-                className="w-full px-5 py-3 rounded-xl bg-white/10 border border-white/20 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-white/50 transition-all font-medium"
-              />
-              <button 
-                type="submit" 
-                className="w-full py-4 rounded-xl bg-white text-primary-600 font-bold text-lg hover:bg-slate-50 transition-all flex items-center justify-center gap-2 group"
+            {/* Contact Form via Web3Forms */}
+            {formStatus === 'success' ? (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="max-w-md mx-auto relative z-10 bg-white/10 backdrop-blur border border-white/20 rounded-2xl p-10 text-center"
               >
-                立即联系我们
-                <Send className="w-5 h-5 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
-              </button>
-              <p className="text-xs text-primary-200/60 font-mono mt-4">
-                * 本表单通过 Formspree 服务安全接入，提交即送达专属邮箱通道。
-              </p>
-            </form>
+                <div className="text-5xl mb-4">✅</div>
+                <h3 className="text-xl font-bold text-white mb-2">提交成功！</h3>
+                <p className="text-primary-100 text-sm">我们的临床实施顾问将在 24 小时内与您联系，请保持电话畅通。</p>
+                <button
+                  onClick={() => setFormStatus('idle')}
+                  className="mt-6 text-xs text-white/50 hover:text-white transition-colors underline underline-offset-2"
+                >重新提交</button>
+              </motion.div>
+            ) : (
+              <form
+                className="max-w-md mx-auto relative z-10 space-y-4"
+                onSubmit={async (e) => {
+                  e.preventDefault();
+                  setFormStatus('loading');
+                  const formData = new FormData(e.currentTarget);
+                  formData.append('access_key', '08e647fa-8372-4420-8260-46892d8c9993');
+                  try {
+                    const res = await fetch('https://api.web3forms.com/submit', {
+                      method: 'POST',
+                      body: formData,
+                    });
+                    const data = await res.json();
+                    setFormStatus(data.success ? 'success' : 'error');
+                  } catch {
+                    setFormStatus('error');
+                  }
+                }}
+              >
+                <input
+                  type="text"
+                  name="name"
+                  required
+                  placeholder="您的姓名"
+                  className="w-full px-5 py-3 rounded-xl bg-white/10 border border-white/20 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-white/50 transition-all font-medium"
+                />
+                <input
+                  type="text"
+                  name="hospital"
+                  required
+                  placeholder="所属医院及科室"
+                  className="w-full px-5 py-3 rounded-xl bg-white/10 border border-white/20 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-white/50 transition-all font-medium"
+                />
+                <input
+                  type="tel"
+                  name="phone"
+                  required
+                  placeholder="联系电话"
+                  className="w-full px-5 py-3 rounded-xl bg-white/10 border border-white/20 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-white/50 transition-all font-medium"
+                />
+                {formStatus === 'error' && (
+                  <p className="text-red-300 text-sm text-center">提交失败，请检查网络连接后重试。</p>
+                )}
+                <button
+                  type="submit"
+                  disabled={formStatus === 'loading'}
+                  className="w-full py-4 rounded-xl bg-white text-primary-600 font-bold text-lg hover:bg-slate-50 transition-all flex items-center justify-center gap-2 group disabled:opacity-60 disabled:cursor-not-allowed"
+                >
+                  {formStatus === 'loading' ? '提交中...' : '立即联系我们'}
+                  {formStatus !== 'loading' && <Send className="w-5 h-5 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />}
+                </button>
+                <p className="text-xs text-primary-200/60 font-mono mt-4">
+                  * 本表单经 Web3Forms 安全加密接入，提交即送达专属邮箱通道。
+                </p>
+              </form>
+            )}
           </div>
 
           <div className="flex flex-col md:flex-row items-center justify-between text-slate-500 text-sm border-t border-slate-800 pt-8">
