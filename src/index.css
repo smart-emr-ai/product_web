@@ -1,0 +1,27 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary-500: #004a99;
+  --color-primary-600: #003770;
+  --color-brand: #004a99;
+  --color-gray-50: #f4f7f9;
+  --color-text-main: #1e293b;
+}
+
+@layer base {
+  body {
+    @apply bg-slate-50 text-slate-800 antialiased font-sans m-0 p-0;
+  }
+}
+
+.glass-panel {
+  @apply bg-white/70 backdrop-blur-xl border border-white/40 shadow-xl;
+}
+
+.hero-gradient {
+  background: linear-gradient(135deg, #f4f7f9 0%, #e3efff 100%);
+}
+
+.timeline-dot {
+  @apply w-4 h-4 rounded-full bg-primary-500 border-4 border-white shadow-sm;
+}
