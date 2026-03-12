@@ -26,14 +26,14 @@ export default function App() {
       labelStyle: "bg-blue-500/20 text-blue-400 border-blue-500/30",
       title: "固定语音采集盒提取",
       desc: <>桌角放置会呼吸的专属录音盒。医生陈述：<span className="text-slate-200 italic">“患者反复头痛三天”</span>，右侧屏幕自动填入“主诉”一栏。支持一句话纠错微调。</>,
-      prompt: "[Nano Banana Prompt]: highly detailed sleek black smart microphone box with a soft cyan breathing LED ring sitting on a tidy wooden doctor's desk. High tech aesthetic, cinematic lighting, 8k."
+      video: `${import.meta.env.BASE_URL}Demo_1.mp4`
     },
     {
       label: "场景 B：住院查房",
       labelStyle: "bg-purple-500/20 text-purple-400 border-purple-500/30",
       title: "移动终端智能整合",
       desc: "持 Pad 查房实时录音，系统后台静默运行，并自动融合最新 LIS/RIS 检验数据，生成连贯准确的病程记录。",
-      prompt: "[Nano Banana Prompt]: an iPad pro displaying a clean medical UI app being held by a doctor in a hospital ward. High tech aesthetic, cinematic lighting, 8k."
+      video: `${import.meta.env.BASE_URL}Demo_2.mp4`
     }
   ];
 
@@ -362,17 +362,22 @@ export default function App() {
                        </p>
                     </div>
 
-                    {/* Image Placeholder Area */}
-                    <div className="flex-1 w-full min-h-[350px] md:min-h-[450px] bg-slate-900 rounded-2xl flex flex-col items-center justify-center p-6 border border-slate-700 shadow-2xl relative group overflow-hidden">
-                        <div className="text-sm font-medium text-slate-500 mb-6 px-4 py-1 rounded-full border border-slate-700 bg-slate-800 shadow-inner z-10 w-max">
-                            Visual Animation Placeholder
-                        </div>
-                        <p className="text-slate-400 text-xs text-center border border-dashed border-slate-700 p-6 rounded-xl font-mono leading-relaxed max-w-sm z-10 bg-slate-900/80 backdrop-blur">
-                            {solutionScenarios[solutionIndex].prompt}
-                        </p>
+                    {/* Video Demo Area */}
+                    <div className="flex-1 w-full min-h-[350px] md:min-h-[450px] bg-slate-950 rounded-2xl border border-slate-700 shadow-2xl relative group overflow-hidden">
+                        <video
+                          key={solutionScenarios[solutionIndex].video}
+                          src={solutionScenarios[solutionIndex].video}
+                          autoPlay
+                          muted
+                          loop
+                          playsInline
+                          className="w-full h-full object-cover absolute inset-0"
+                        />
+                        {/* Soft vignette overlay */}
+                        <div className="absolute inset-0 pointer-events-none rounded-2xl" style={{ boxShadow: 'inset 0 0 60px 20px rgba(2,6,23,0.55)' }} />
                         {/* Soft visual glow matching scenario color */}
                         <div className={cn(
-                          "absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 blur-[100px] opacity-20 pointer-events-none rounded-full transition-colors duration-1000",
+                          "absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 blur-[120px] opacity-15 pointer-events-none rounded-full transition-colors duration-1000",
                           solutionIndex === 0 ? "bg-blue-500" : "bg-purple-500"
                         )} />
                     </div>
