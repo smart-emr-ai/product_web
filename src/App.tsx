@@ -25,14 +25,14 @@ export default function App() {
       label: "场景 A：门诊",
       labelStyle: "bg-blue-500/20 text-blue-400 border-blue-500/30",
       title: "固定语音采集盒提取",
-      desc: <>桌角放置会呼吸的专属录音盒。医生陈述：<span className="text-slate-200 italic">“患者反复头痛三天”</span>，右侧屏幕自动填入“主诉”一栏。支持一句话纠错微调。</>,
+      desc: "桌角放置会呼吸的专属录音盒。医患自然沟通，ai自动整理为结构化病历。生成结果支持手动纠错和一句话纠错。医生签名后方可入库。",
       video: `${import.meta.env.BASE_URL}Demo_1.mp4`
     },
     {
       label: "场景 B：住院查房",
       labelStyle: "bg-purple-500/20 text-purple-400 border-purple-500/30",
       title: "移动终端智能整合",
-      desc: "持 Pad 查房实时录音，系统后台静默运行，并自动融合最新 LIS/RIS 检验数据，生成连贯准确的病程记录。",
+      desc: "持平板查房实时录音，系统后台静默运行，并自动融合最新 LIS/RIS 检验数据，生成连贯准确的病程记录。",
       video: `${import.meta.env.BASE_URL}Demo_2.mp4`
     }
   ];
@@ -65,7 +65,7 @@ export default function App() {
       uiType: "card"
     },
     {
-      title: "每一次自然对谈，都是一份标准病历。",
+      title: "每一次自然对谈，都是一份合格病历。",
       subtitle: "实时语义理解、清洗与结构化，一键生成符合国家标准的甲级病历文书。",
       visualPrompt: "[Nano Banana Prompt]: A glowing futuristic 3D funnel diagram in a super clean white studio environment. Top of the funnel shows scattered audio wave icons, the middle shows AI neural network nodes glowing in medical blue, and the bottom outputs neat, structured medical documents. Glassmorphism style, isometric 3D, volumetric lighting, tech-medical aesthetic, highly detailed.",
       image: `${import.meta.env.BASE_URL}hero_2.png`,
