@@ -1,73 +1,69 @@
-# React + TypeScript + Vite
+# MediCore Product Website
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+MediCore 官网单页应用，基于 React、Vite、Tailwind CSS 和 Framer Motion 构建。
 
-Currently, two official plugins are available:
+## 本地开发
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(["dist"]),
-  {
-    files: ["**/*.{ts,tsx}"],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ["./tsconfig.node.json", "./tsconfig.app.json"],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-]);
+```bash
+npm ci
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+默认本地地址为 `http://127.0.0.1:5173/`。
 
-```js
-// eslint.config.js
-import reactX from "eslint-plugin-react-x";
-import reactDom from "eslint-plugin-react-dom";
+## 构建
 
-export default defineConfig([
-  globalIgnores(["dist"]),
-  {
-    files: ["**/*.{ts,tsx}"],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs["recommended-typescript"],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ["./tsconfig.node.json", "./tsconfig.app.json"],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-]);
+```bash
+npm run build
 ```
+
+构建产物输出到 `dist/`。默认 `base` 为 `/`，适合部署到 `medicore.org.cn` 或 `www.medicore.org.cn` 根路径。
+
+如果需要继续部署到 GitHub Pages 的项目路径，可以在构建时设置：
+
+```bash
+VITE_BASE_PATH=/product_web/ npm run build
+```
+
+## 数据分析
+
+项目内置 Umami 轻量埋点支持。设置以下环境变量后会自动加载 tracker：
+
+```bash
+VITE_UMAMI_WEBSITE_ID=your-website-id
+VITE_UMAMI_SCRIPT_URL=https://your-umami.example.com/script.js
+```
+
+已记录的事件包括：
+
+- CTA 点击
+- 官网 section 浏览
+- 科室 tab 切换
+- 联系表单提交结果
+
+## 联系表单
+
+联系表单使用 PRD 中的 Formspree endpoint：
+
+```text
+https://formspree.io/f/xyzkbwpg
+```
+
+如需更换收件通道，只需要修改 `src/App.tsx` 中的 `CONTACT_ENDPOINT`。
+
+## Nginx
+
+`deploy/nginx/medicore.org.cn.conf` 提供了根域、www、HTTPS、SPA fallback、ACME challenge 和缓存头配置示例。
+
+当前火山 ECS 部署约定：
+
+- 构建产物目录：`/opt/smart-emr/apps/product-web/dist`
+- Nginx 容器挂载：`/usr/share/nginx/product-web`
+- Let’s Encrypt 证书：`/etc/nginx/ssl/letsencrypt/live/medicore.org.cn/`
+- 访问策略：`http://medicore.org.cn`、`https://medicore.org.cn` 均 301 到 `https://www.medicore.org.cn`
+
+建议缓存策略：
+
+- `index.html`：`no-cache`
+- `/assets/`：`public, max-age=31536000, immutable`
+- 图片、视频、字体：`public, max-age=2592000`
