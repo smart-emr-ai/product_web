@@ -110,6 +110,52 @@ Remove-Item Env:VITE_UMAMI_DOMAINS
 
 等 `medicore.org.cn` 在火山完成接入备案后，可以删除 `smart-emr.cn` 上的 `/medicore/` 和 `/medicore-analytics/` 临时 location。
 
+## 备案通过后清理清单
+
+当前 `main` 中会保留一段临时过渡配置，目的是在 `medicore.org.cn` 火山接入备案完成前，让团队可以先通过 `smart-emr.cn` 查看和验收官网。
+
+临时状态：
+
+- 临时官网地址：`https://smart-emr.cn/medicore/`
+- 临时 Umami tracker 代理：`https://smart-emr.cn/medicore-analytics/`
+- 正式域名 `medicore.org.cn` / `www.medicore.org.cn` 的代码、Nginx、HTTPS、Umami 配置已经准备好，但国内公网访问仍受火山接入备案拦截影响
+- Umami 后台不占用 `smart-emr.cn` / `www.smart-emr.cn` 官网入口，备案前使用本地 SSH 隧道查看
+
+备案通过后需要做：
+
+1. 重新构建正式根路径版本：
+
+   ```bash
+   npm run build
+   ```
+
+2. 使用正式 Umami 环境变量构建并部署到：
+
+   ```text
+   /opt/smart-emr/apps/product-web/dist
+   ```
+
+3. 验证正式域名：
+
+   ```text
+   https://www.medicore.org.cn/
+   https://www.medicore.org.cn/script.js
+   https://www.medicore.org.cn/api/heartbeat
+   ```
+
+4. 从 `smart-emr.cn` 的 Nginx 443 server block 中删除 `/medicore/` 和 `/medicore-analytics/` 临时 location。
+5. 清理临时部署目录：
+
+   ```text
+   /opt/smart-emr/apps/product-web/dist/medicore
+   ```
+
+6. 更新 README 和 PR/issue 记录，明确官网正式入口已经切回：
+
+   ```text
+   https://www.medicore.org.cn/
+   ```
+
 ## 构建
 
 ```bash
