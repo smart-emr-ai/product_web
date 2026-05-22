@@ -1,0 +1,51 @@
+services:
+  umami:
+    image: ghcr.io/umami-software/umami:latest
+    container_name: medicore-umami
+    init: true
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://umami:${UMAMI_POSTGRES_PASSWORD}@db:5432/umami
+      APP_SECRET: ${UMAMI_APP_SECRET}
+      DISABLE_TELEMETRY: "1"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - umami-net
+      - proxy-net
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:3000/api/heartbeat"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  db:
+    image: postgres:15-alpine
+    container_name: medicore-umami-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: umami
+      POSTGRES_USER: umami
+      POSTGRES_PASSWORD: ${UMAMI_POSTGRES_PASSWORD}
+      TZ: UTC
+      PGTZ: UTC
+    volumes:
+      - umami-db-data:/var/lib/postgresql/data
+    networks:
+      - umami-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  umami-db-data:
+
+networks:
+  umami-net:
+    driver: bridge
+  proxy-net:
+    external: true
+    name: server-api_emr-net

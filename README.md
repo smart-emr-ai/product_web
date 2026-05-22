@@ -1,73 +1,255 @@
-# React + TypeScript + Vite
+# MediCore Product Website
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+MediCore 官网单页应用，基于 React、Vite、Tailwind CSS 和 Framer Motion 构建。
 
-Currently, two official plugins are available:
+公司主体：医联智芯智能科技（上海）有限公司。
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## 本地开发
 
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(["dist"]),
-  {
-    files: ["**/*.{ts,tsx}"],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ["./tsconfig.node.json", "./tsconfig.app.json"],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-]);
+```bash
+npm ci
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+默认本地地址为 `http://127.0.0.1:5173/`。
 
-```js
-// eslint.config.js
-import reactX from "eslint-plugin-react-x";
-import reactDom from "eslint-plugin-react-dom";
+如果只是想在没有备案放行前本地查看官网，推荐使用：
 
-export default defineConfig([
-  globalIgnores(["dist"]),
-  {
-    files: ["**/*.{ts,tsx}"],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs["recommended-typescript"],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ["./tsconfig.node.json", "./tsconfig.app.json"],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-]);
+```bash
+npm ci
+npm run dev -- --host 127.0.0.1
 ```
+
+然后在浏览器打开：
+
+```text
+http://127.0.0.1:5173/
+```
+
+也可以查看更接近线上静态产物的 production preview：
+
+```bash
+npm run build
+npm run preview -- --host 127.0.0.1 --port 4173
+```
+
+然后打开：
+
+```text
+http://127.0.0.1:4173/
+```
+
+本地预览不需要 ICP 备案，也不会经过火山引擎公网合规拦截。
+
+## 查看数据后台
+
+备案接入完成前，Umami 后台不占用 `smart-emr.cn` / `www.smart-emr.cn` 官网入口。使用本地 SSH 隧道查看：
+
+```powershell
+.\scripts\open-umami-tunnel.ps1
+```
+
+然后浏览器打开：
+
+```text
+http://127.0.0.1:3001/login
+```
+
+登录密码保存在 ECS：
+
+```powershell
+ssh volc-ecs "cat /opt/smart-emr/apps/product-web/umami-admin-credentials.txt"
+```
+
+如果本机 `3001` 端口被占用，可以换一个端口：
+
+```powershell
+.\scripts\open-umami-tunnel.ps1 -Port 3002
+```
+
+## 临时可访问地址
+
+备案接入完成前，可以先把官网挂到已备案通过的 `smart-emr.cn` 路径下：
+
+```text
+https://smart-emr.cn/medicore/
+```
+
+这个临时路径对应的 Nginx 片段在：
+
+```text
+deploy/nginx/smart-emr-medicore-path.conf
+```
+
+构建临时路径版本时使用：
+
+```bash
+VITE_BASE_PATH=/medicore/ \
+VITE_UMAMI_WEBSITE_ID=d4a80fea-ed31-4407-b06f-b7784018e032 \
+VITE_UMAMI_SCRIPT_URL=https://smart-emr.cn/medicore-analytics/script.js \
+VITE_UMAMI_HOST_URL=https://smart-emr.cn/medicore-analytics \
+VITE_UMAMI_DOMAINS=medicore.org.cn,www.medicore.org.cn,smart-emr.cn \
+npm run build
+```
+
+Windows PowerShell：
+
+```powershell
+$env:VITE_BASE_PATH="/medicore/"
+$env:VITE_UMAMI_WEBSITE_ID="d4a80fea-ed31-4407-b06f-b7784018e032"
+$env:VITE_UMAMI_SCRIPT_URL="https://smart-emr.cn/medicore-analytics/script.js"
+$env:VITE_UMAMI_HOST_URL="https://smart-emr.cn/medicore-analytics"
+$env:VITE_UMAMI_DOMAINS="medicore.org.cn,www.medicore.org.cn,smart-emr.cn"
+npm run build
+Remove-Item Env:VITE_BASE_PATH
+Remove-Item Env:VITE_UMAMI_WEBSITE_ID
+Remove-Item Env:VITE_UMAMI_SCRIPT_URL
+Remove-Item Env:VITE_UMAMI_HOST_URL
+Remove-Item Env:VITE_UMAMI_DOMAINS
+```
+
+等 `medicore.org.cn` 在火山完成接入备案后，可以删除 `smart-emr.cn` 上的 `/medicore/` 和 `/medicore-analytics/` 临时 location。
+
+## 备案通过后清理清单
+
+当前 `main` 中会保留一段临时过渡配置，目的是在 `medicore.org.cn` 火山接入备案完成前，让团队可以先通过 `smart-emr.cn` 查看和验收官网。
+
+临时状态：
+
+- 临时官网地址：`https://smart-emr.cn/medicore/`
+- 临时 Umami tracker 代理：`https://smart-emr.cn/medicore-analytics/`
+- 正式域名 `medicore.org.cn` / `www.medicore.org.cn` 的代码、Nginx、HTTPS、Umami 配置已经准备好，但国内公网访问仍受火山接入备案拦截影响
+- Umami 后台不占用 `smart-emr.cn` / `www.smart-emr.cn` 官网入口，备案前使用本地 SSH 隧道查看
+
+备案通过后需要做：
+
+1. 重新构建正式根路径版本：
+
+   ```bash
+   npm run build
+   ```
+
+2. 使用正式 Umami 环境变量构建并部署到：
+
+   ```text
+   /opt/smart-emr/apps/product-web/dist
+   ```
+
+3. 验证正式域名：
+
+   ```text
+   https://www.medicore.org.cn/
+   https://www.medicore.org.cn/script.js
+   https://www.medicore.org.cn/api/heartbeat
+   ```
+
+4. 从 `smart-emr.cn` 的 Nginx 443 server block 中删除 `/medicore/` 和 `/medicore-analytics/` 临时 location。
+5. 清理临时部署目录：
+
+   ```text
+   /opt/smart-emr/apps/product-web/dist/medicore
+   ```
+
+6. 更新 README 和 PR/issue 记录，明确官网正式入口已经切回：
+
+   ```text
+   https://www.medicore.org.cn/
+   ```
+
+## 构建
+
+```bash
+npm run build
+```
+
+构建产物输出到 `dist/`。默认 `base` 为 `/`，适合部署到 `medicore.org.cn` 或 `www.medicore.org.cn` 根路径。
+
+如果需要继续部署到 GitHub Pages 的项目路径，可以在构建时设置：
+
+```bash
+VITE_BASE_PATH=/product_web/ npm run build
+```
+
+## 数据分析
+
+项目内置 Umami 轻量埋点支持。设置以下环境变量后会自动加载 tracker：
+
+```bash
+VITE_UMAMI_WEBSITE_ID=your-website-id
+VITE_UMAMI_SCRIPT_URL=https://www.medicore.org.cn/script.js
+VITE_UMAMI_HOST_URL=https://www.medicore.org.cn
+VITE_UMAMI_DOMAINS=medicore.org.cn,www.medicore.org.cn
+```
+
+已记录的事件包括：
+
+- CTA 点击
+- 官网 section 浏览
+- 科室 tab 切换
+- 联系表单提交结果
+
+## 联系表单
+
+联系表单使用 PRD 中的 Formspree endpoint：
+
+```text
+https://formspree.io/f/xyzkbwpg
+```
+
+如需更换收件通道，只需要修改 `src/App.tsx` 中的 `CONTACT_ENDPOINT`。
+
+Formspree 是第三方表单代收服务：浏览器把表单内容 POST 到 Formspree，Formspree 再转发到收件邮箱或后台。当前只是临时官网咨询通道；如果后续要避免任何第三方表单服务，应改成自有后端接口。
+
+## 自建 Umami
+
+自建 Umami 部署在火山 ECS 上。当前线上使用同域代理，避免新增 DNS 和证书：
+
+```text
+后台入口：https://www.medicore.org.cn/analytics
+Tracker：https://www.medicore.org.cn/script.js
+采集接口：https://www.medicore.org.cn/api/send
+```
+
+部署模板：
+
+- `deploy/umami/docker-compose.yml`
+- `deploy/umami/.env.example`
+- `deploy/nginx/medicore.org.cn.conf`
+
+生产环境不要提交真实 `.env`。服务器上需要单独生成：
+
+- `UMAMI_POSTGRES_PASSWORD`
+- `UMAMI_APP_SECRET`
+
+官网构建时使用 Umami website id：
+
+```bash
+$env:VITE_UMAMI_WEBSITE_ID="实际 website id"
+$env:VITE_UMAMI_SCRIPT_URL="https://www.medicore.org.cn/script.js"
+$env:VITE_UMAMI_HOST_URL="https://www.medicore.org.cn"
+$env:VITE_UMAMI_DOMAINS="medicore.org.cn,www.medicore.org.cn"
+npm run build
+```
+
+## Nginx
+
+`deploy/nginx/medicore.org.cn.conf` 提供了根域、www、HTTPS、SPA fallback、ACME challenge 和缓存头配置示例。
+
+当前火山 ECS 部署约定：
+
+- 构建产物目录：`/opt/smart-emr/apps/product-web/dist`
+- Nginx 容器挂载：`/usr/share/nginx/product-web`
+- Let’s Encrypt 证书：`/etc/nginx/ssl/letsencrypt/live/medicore.org.cn/`
+- 访问策略：`http://medicore.org.cn`、`https://medicore.org.cn` 均 301 到 `https://www.medicore.org.cn`
+
+建议缓存策略：
+
+- `index.html`：`no-cache`
+- `/assets/`：`public, max-age=31536000, immutable`
+- 图片、视频、字体：`public, max-age=2592000`
+
+## 火山备案状态
+
+当前官网代码、Nginx、HTTPS、自建 Umami 和 ECS 内部访问均已配置完成；但 `medicore.org.cn` / `www.medicore.org.cn` 解析到火山中国大陆 ECS 后，还需要完成火山引擎接入备案，否则国内公网访问会被火山引擎显示「网站暂时无法访问」拦截页。
+
+备案接入由业务负责人在火山控制台处理。备案放行前，可使用上面的本地开发或 production preview 方式查看页面。

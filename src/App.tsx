@@ -1,667 +1,652 @@
-import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  HeartPulse, 
-  Stethoscope, 
-  Brain, 
+import { useEffect, useState } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
+import {
   Activity,
   ArrowRight,
-  Send,
+  Brain,
+  CalendarCheck,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  HeartPulse,
+  Send,
+  ShieldCheck,
+  Stethoscope,
 } from 'lucide-react';
 import { cn } from './lib/utils';
+import { trackEvent, useSectionViewTracking } from './lib/analytics';
 
+const ANALYTICS_SECTIONS = ['hero', 'conflict', 'solution', 'customization', 'value', 'contact'];
+const CONTACT_ENDPOINT = 'https://formspree.io/f/xyzkbwpg';
+const COMPANY_NAME = '医联智芯智能科技（上海）有限公司';
 
+const asset = (name: string) => `${import.meta.env.BASE_URL}${name}`;
+
+const heroSlides = [
+  {
+    title: '把时间还给病人，把文书交给 AI。',
+    subtitle: '由德国 AI 博士团队与三甲临床专家深度联合，为医生打造的病历生成辅助层。',
+    imageWebp: asset('hero_1.webp'),
+    position: 'center 10%',
+    size: 'cover',
+    tone: 'dark',
+  },
+  {
+    title: '每一次自然对谈，都是一份合格病历。',
+    subtitle: '实时语义理解、清洗与结构化，一键生成符合国家标准的甲级病历文书。',
+    imageWebp: asset('hero_2.webp'),
+    position: '120% 30%',
+    size: 'auto 130%',
+    tone: 'light',
+  },
+];
+
+const conflictRows = [
+  {
+    beforeTitle: '医生在诊疗中平均点击鼠标',
+    beforeMetric: '400',
+    beforeSuffix: '次/小时',
+    beforeCopy: '诊疗中的核心认知资源，被文书系统持续侵占。',
+    afterTitle: 'AI 实时捕获，医生',
+    afterMetric: '只做判断',
+    afterCopy: '释放医生认知带宽，AI 捕获临床语义，医生仅需逻辑确认，将精力还给患者。',
+  },
+  {
+    beforeTitle: '传统系统以',
+    beforeMetric: '填表 / 计费',
+    beforeSuffix: '为导向',
+    beforeCopy: '口语表达与规范文书之间存在结构性断层，手动转译耗时且标准难统一。',
+    afterTitle: '',
+    afterMetric: '95%+',
+    afterSuffix: '直接入库率',
+    afterCopy: '基于德国 AI 团队算法和三甲临床专家指导，口语化表达自动转化为规范医学文书。',
+  },
+  {
+    beforeTitle: '',
+    beforeMetric: '医疗纠纷风险',
+    beforeSuffix: '隐性累积',
+    beforeCopy: '流水账式记录导致临床上下文一致性极难保证，病历合规依赖事后人工审查。',
+    afterTitle: '',
+    afterMetric: '100%',
+    afterSuffix: '一致性自动校验',
+    afterCopy: '生成文书同步深度结构化，自动进行一致性检查，将合规性前置到诊疗过程中。',
+  },
+];
+
+const solutionScenarios = [
+  {
+    label: '场景 A：门诊',
+    labelStyle: 'bg-blue-500/15 text-blue-100 border-blue-400/30',
+    title: '固定语音采集盒提取',
+    desc: '桌角放置会呼吸的专属录音盒。医患自然沟通，AI 自动整理为结构化病历；医生签名确认后方可入库。',
+    video: asset('Demo_1.mp4'),
+  },
+  {
+    label: '场景 B：住院查房',
+    labelStyle: 'bg-cyan-500/15 text-cyan-100 border-cyan-400/30',
+    title: '移动终端智能整合',
+    desc: '持平板查房实时录音，系统后台静默运行，并自动融合最新 LIS/RIS 检验数据，生成连贯准确的病程记录。',
+    video: asset('Demo_2.mp4'),
+  },
+];
+
+const departments = [
+  {
+    name: '心血管内科',
+    icon: HeartPulse,
+    preview: ['主诉：反复胸闷心悸3年，加重伴双下肢水肿3天。', '现病史：患者3年前无明显诱因出现胸闷、心悸，多于劳累后发作。'],
+  },
+  {
+    name: '肾内科',
+    icon: Activity,
+    preview: ['主诉：双下肢浮肿半年，泡沫尿1个月。', '现病史：患者半年前双下肢水肿，呈凹陷性，休息后未见明显缓解。'],
+  },
+  {
+    name: '神经内科',
+    icon: Brain,
+    preview: ['主诉：突发言语不清伴右侧肢体无力4小时。', '现病史：患者4小时前安静状态下突发言语不清，右侧偏瘫。'],
+  },
+  {
+    name: '急诊科',
+    icon: Stethoscope,
+    preview: ['主诉：剧烈腹痛2小时。', '现病史：患者2小时前饱餐后突发中上腹持续性绞痛，阵发性加剧。'],
+  },
+];
+
+const contactItems = [
+  {
+    title: '商务咨询',
+    desc: '提交需求后 24 小时内响应',
+    icon: Send,
+  },
+  {
+    title: '科室演示',
+    desc: '按门诊、住院场景准备方案',
+    icon: CalendarCheck,
+  },
+  {
+    title: '部署咨询',
+    desc: '支持私有化与院内合规对接',
+    icon: ShieldCheck,
+  },
+];
 
 export default function App() {
-  const [activeDepartment, setActiveDepartment] = useState(0);
   const [heroIndex, setHeroIndex] = useState(0);
   const [solutionIndex, setSolutionIndex] = useState(0);
+  const [activeDepartment, setActiveDepartment] = useState(0);
   const [formStatus, setFormStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
 
-  const solutionScenarios = [
-    {
-      label: "场景 A：门诊",
-      labelStyle: "bg-blue-500/20 text-blue-400 border-blue-500/30",
-      title: "固定语音采集盒提取",
-      desc: "桌角放置会呼吸的专属录音盒。医患自然沟通，ai自动整理为结构化病历。生成结果支持手动纠错和一句话纠错。医生签名后方可入库。",
-      video: `${import.meta.env.BASE_URL}Demo_1.mp4`
-    },
-    {
-      label: "场景 B：住院查房",
-      labelStyle: "bg-purple-500/20 text-purple-400 border-purple-500/30",
-      title: "移动终端智能整合",
-      desc: "持平板查房实时录音，系统后台静默运行，并自动融合最新 LIS/RIS 检验数据，生成连贯准确的病程记录。",
-      video: `${import.meta.env.BASE_URL}Demo_2.mp4`
-    }
-  ];
+  useSectionViewTracking(ANALYTICS_SECTIONS);
 
-  const handleNextSolution = () => {
-    setSolutionIndex((prev) => (prev + 1) % solutionScenarios.length);
-  };
-
-  const handlePrevSolution = () => {
-    setSolutionIndex((prev) => (prev - 1 + solutionScenarios.length) % solutionScenarios.length);
-  };
-
-  // Auto-playing hero carousel
   useEffect(() => {
-    const timer = setInterval(() => {
-      setHeroIndex((prev) => (prev + 1) % 2);
+    const timer = window.setInterval(() => {
+      setHeroIndex((current) => (current + 1) % heroSlides.length);
     }, 6000);
-    return () => clearInterval(timer);
+
+    return () => window.clearInterval(timer);
   }, []);
 
-  const heroContent = [
-    {
-      title: "把时间还给病人，把文书交给 AI。",
-      subtitle: "由德国 AI 博士团队与三甲临床专家深度联合，为医生打造的病历生成辅助层。",
-      visualPrompt: "[Nano Banana Prompt]: Professional photography, a doctor in a clean white coat working in a modern clinical setting with soft natural window light, looking attentively at a patient (out of frame). High end medical environment, cinematic lighting, medical blue and white tones, depth of field, 8k resolution, photorealistic. Overlay a semi-transparent futuristic UI card floating with clinical text.",
-      image: `${import.meta.env.BASE_URL}hero_1.png`,
-      bgPosition: "center 10%",
-      bgSize: "cover",
-      bgColor: "#0f172a",
-      uiType: "card"
-    },
-    {
-      title: "每一次自然对谈，都是一份合格病历。",
-      subtitle: "实时语义理解、清洗与结构化，一键生成符合国家标准的甲级病历文书。",
-      visualPrompt: "[Nano Banana Prompt]: A glowing futuristic 3D funnel diagram in a super clean white studio environment. Top of the funnel shows scattered audio wave icons, the middle shows AI neural network nodes glowing in medical blue, and the bottom outputs neat, structured medical documents. Glassmorphism style, isometric 3D, volumetric lighting, tech-medical aesthetic, highly detailed.",
-      image: `${import.meta.env.BASE_URL}hero_2.png`,
-      bgPosition: "120% 30%",
-      bgSize: "auto 130%",
-      bgColor: "#ffffff",
-      uiType: "none"
-    }
-  ];
-
-  const departments = [
-    { name: '心血管内科', icon: HeartPulse, preview: "主诉：反复胸闷心悸3年，加重伴双下肢水肿3天。\n现病史：患者3年前无明显诱因出现胸闷、心悸，多于劳累后发作..." },
-    { name: '肾内科', icon: Activity, preview: "主诉：双下肢浮肿半年，泡沫尿1个月。\n现病史：患者半年前双下肢水肿，呈凹陷性，休息后未见明显缓解..." },
-    { name: '神经内科', icon: Brain, preview: "主诉：突发言语不清伴右侧肢体无力4小时。\n现病史：患者4小时前安静状态下突发言语不清，右侧偏瘫..." },
-    { name: '急诊科', icon: Stethoscope, preview: "主诉：剧烈腹痛2小时。\n现病史：患者2小时前饱餐后突发中上腹持续性绞痛，阵发性加剧，向腰背部放射..." },
-  ];
+  const activeHero = heroSlides[heroIndex];
+  const activeScenario = solutionScenarios[solutionIndex];
+  const activeDept = departments[activeDepartment];
 
   return (
-    <div className="font-sans text-slate-800 bg-slate-50 min-h-screen">
-      {/* Navbar */}
-      <nav className="fixed top-0 w-full z-50 bg-white/70 backdrop-blur-md border-b border-white/20 shadow-sm transition-all duration-300">
-        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-primary-500 flex items-center justify-center">
-              <Activity className="text-white w-5 h-5" />
-            </div>
-            <span className="font-bold text-xl tracking-tight text-primary-600">MediAI<span className="text-slate-400 font-normal">.doc</span></span>
+    <div className="min-h-screen bg-slate-50 font-sans text-slate-800">
+      <nav className="fixed top-0 z-50 w-full border-b border-white/20 bg-white/80 shadow-sm backdrop-blur-md">
+        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-5 md:px-6">
+          <a href="#hero" className="flex items-center gap-2" data-umami-event="brand-click">
+            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary-500">
+              <Activity className="h-5 w-5 text-white" />
+            </span>
+            <span className="text-lg font-bold tracking-tight text-primary-600 sm:text-xl">
+              MediCore<span className="hidden font-normal text-slate-400 sm:inline"> 智能病历</span>
+            </span>
+          </a>
+
+          <div className="hidden items-center gap-7 text-sm font-medium text-slate-600 md:flex">
+            <a href="#conflict" className="transition-colors hover:text-primary-500">痛点解决</a>
+            <a href="#solution" className="transition-colors hover:text-primary-500">核心场景</a>
+            <a href="#customization" className="transition-colors hover:text-primary-500">深度定制</a>
+            <a href="#contact" className="transition-colors hover:text-primary-500">联系我们</a>
           </div>
-          <div className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-600">
-            <a href="#hero" className="hover:text-primary-500 transition-colors">首页</a>
-            <a href="#conflict" className="hover:text-primary-500 transition-colors">痛点解决</a>
-            <a href="#solution" className="hover:text-primary-500 transition-colors">核心场景</a>
-            <a href="#customization" className="hover:text-primary-500 transition-colors">深度定制</a>
-            <a href="#contact" className="hover:text-primary-500 transition-colors">联系我们</a>
-          </div>
-          <a href="#contact" className="px-5 py-2 rounded-full bg-primary-500 text-white text-sm font-medium hover:bg-primary-600 transition-transform hover:scale-105 active:scale-95">
+
+          <a
+            href="#contact"
+            data-umami-event="cta-click"
+            data-umami-event-location="navbar"
+            className="rounded-full bg-primary-500 px-5 py-2 text-sm font-medium text-white transition hover:bg-primary-600"
+          >
             申请试用
           </a>
         </div>
       </nav>
 
-      {/* Hero Section */}
-      <section id="hero" className="relative pt-32 pb-20 lg:pt-40 lg:pb-32 overflow-hidden min-h-[90vh] lg:min-h-[100vh] flex items-center bg-slate-900">
-        
-        {/* Full Bleed Background Images with Crossfade */}
-        <div className="absolute inset-0 z-0">
+      <section id="hero" className="relative flex min-h-[92vh] items-center overflow-hidden bg-slate-950 pt-24">
+        <div className="absolute inset-0">
           <AnimatePresence mode="wait">
             <motion.div
               key={heroIndex}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 1 }}
-              className="absolute inset-0 bg-no-repeat transition-colors duration-700"
-              style={{ 
-                backgroundImage: `url(${heroContent[heroIndex].image})`,
-                backgroundPosition: heroContent[heroIndex].bgPosition,
-                backgroundSize: heroContent[heroIndex].bgSize || 'cover',
-                backgroundColor: heroContent[heroIndex].bgColor || 'transparent'
+              transition={{ duration: 0.8 }}
+              className="absolute inset-0 bg-no-repeat"
+              style={{
+                backgroundImage: `url("${activeHero.imageWebp}")`,
+                backgroundPosition: activeHero.position,
+                backgroundSize: activeHero.size,
+                backgroundColor: activeHero.tone === 'light' ? '#ffffff' : '#0f172a',
               }}
             />
           </AnimatePresence>
-          {/* Deep Blue Gradient Mask: Left opaque, Right transparent */}
-          <div className="absolute inset-0 z-10 bg-gradient-to-r from-[rgba(0,25,70,0.95)] via-[rgba(0,30,80,0.65)] to-[rgba(0,30,80,0.1)] pointer-events-none" />
+          <div className="absolute inset-0 bg-gradient-to-r from-[rgba(0,25,70,0.96)] via-[rgba(0,30,80,0.68)] to-[rgba(0,30,80,0.08)]" />
         </div>
 
-        <div className="max-w-7xl mx-auto px-6 relative z-20 w-full">
+        <div className="relative z-10 mx-auto w-full max-w-7xl px-6 py-16">
           <div className="max-w-2xl">
             <AnimatePresence mode="wait">
               <motion.div
                 key={heroIndex}
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 18 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.5, ease: "easeOut" }}
+                exit={{ opacity: 0, y: -18 }}
+                transition={{ duration: 0.45, ease: 'easeOut' }}
               >
-                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold leading-[1.15] text-white mb-6 tracking-tight">
-                  {heroContent[heroIndex].title}
+                <h1 className="mb-6 text-4xl font-bold leading-tight tracking-tight text-white sm:text-5xl lg:text-6xl">
+                  {activeHero.title}
                 </h1>
-                <p className="text-lg text-blue-100/90 leading-relaxed mb-8 font-light">
-                  {heroContent[heroIndex].subtitle}
+                <p className="mb-8 text-lg leading-relaxed text-blue-100/90">
+                  {activeHero.subtitle}
                 </p>
-                <a href="#contact" className="inline-flex items-center justify-center px-8 py-4 rounded-full bg-primary-500 text-white font-medium text-lg hover:bg-primary-600 transition-all hover:shadow-[0_0_20px_rgba(0,74,153,0.5)] gap-2 group border border-white/10">
+                <a
+                  href="#contact"
+                  data-umami-event="cta-click"
+                  data-umami-event-location="hero"
+                  className="inline-flex items-center justify-center gap-2 rounded-full border border-white/10 bg-primary-500 px-8 py-4 text-lg font-medium text-white transition hover:bg-primary-600"
+                >
                   申请科室试用
-                  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                  <ArrowRight className="h-5 w-5" />
                 </a>
               </motion.div>
             </AnimatePresence>
 
-            {/* Carousel Indicators */}
-            <div className="flex gap-2 mt-12">
-              {heroContent.map((_, idx) => (
-                <button 
-                  key={idx}
-                  onClick={() => setHeroIndex(idx)}
+            <div className="mt-12 flex gap-2">
+              {heroSlides.map((slide, index) => (
+                <button
+                  key={slide.title}
+                  onClick={() => {
+                    setHeroIndex(index);
+                    trackEvent('hero-slide-select', { slide: index + 1 });
+                  }}
                   className={cn(
-                    "w-12 h-1.5 rounded-full transition-all duration-300",
-                    idx === heroIndex ? "bg-white" : "bg-white/30 hover:bg-white/50"
+                    'h-1.5 rounded-full transition-all',
+                    index === heroIndex ? 'w-12 bg-white' : 'w-8 bg-white/30 hover:bg-white/50',
                   )}
-                  aria-label={`Go to slide ${idx + 1}`}
+                  aria-label={`切换到首屏 ${index + 1}`}
                 />
               ))}
             </div>
           </div>
         </div>
 
-        {/* Floating AI Generation Card - Bottom Right (1/3) with Glassmorphism */}
-        <div className="absolute right-[5%] lg:right-[15%] bottom-[5%] lg:bottom-[15%] z-30 hidden md:block">
-          <AnimatePresence mode="wait">
-            {heroContent[heroIndex].uiType === 'card' && (
-              <motion.div 
-                key="card-1"
-                className="bg-[rgba(0,15,35,0.4)] backdrop-blur-xl border border-white/20 p-6 lg:p-8 rounded-2xl w-80 lg:w-[420px] text-left shadow-[0_20px_50px_rgba(0,0,0,0.5)]"
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 10 }}
-                transition={{ duration: 0.8, ease: "easeOut" }}
-              >
-                <div className="flex items-center gap-3 mb-5 pb-4 border-b border-white/10">
-                  <div className="w-2.5 h-2.5 rounded-full bg-blue-400 animate-pulse shadow-[0_0_8px_rgba(96,165,250,0.8)]" />
-                  <div className="text-sm font-semibold text-white tracking-wide">结构化病历生成中...</div>
-                </div>
-                <div className="space-y-4 font-mono text-sm text-blue-50/90 leading-relaxed font-light">
-                  <motion.div
-                    initial={{ width: 0, opacity: 0 }}
-                    animate={{ width: "100%", opacity: 1 }}
-                    transition={{ delay: 0.5, duration: 2, ease: "linear" }}
-                    className="overflow-hidden whitespace-nowrap block"
-                  >
-                    <span className="text-blue-400 mr-2">▶</span>深度识别临床上下文逻辑...
-                  </motion.div>
-                  <motion.div
-                    initial={{ width: 0, opacity: 0 }}
-                    animate={{ width: "100%", opacity: 1 }}
-                    transition={{ delay: 2.5, duration: 1.5, ease: "linear" }}
-                    className="overflow-hidden whitespace-nowrap block"
-                  >
-                    <span className="text-blue-400 mr-2">▶</span>自动映射 HIS 系统标准化字段...
-                  </motion.div>
-                  <motion.div
-                    initial={{ width: 0, opacity: 0 }}
-                    animate={{ width: "100%", opacity: 1 }}
-                    transition={{ delay: 4.0, duration: 1.0, ease: "linear" }}
-                    className="overflow-hidden whitespace-nowrap block text-blue-300 font-medium"
-                  >
-                    <span className="text-blue-400 mr-2">▶</span>生成临床甲级病历。
-                  </motion.div>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
+        {heroIndex === 0 && (
+          <motion.div
+            className="absolute bottom-[10%] right-[6%] z-20 hidden w-[360px] rounded-lg border border-white/20 bg-slate-950/45 p-6 text-left shadow-2xl backdrop-blur-xl lg:block"
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7 }}
+          >
+            <div className="mb-5 flex items-center gap-3 border-b border-white/10 pb-4">
+              <span className="h-2.5 w-2.5 rounded-full bg-blue-300 shadow-[0_0_10px_rgba(125,211,252,0.8)]" />
+              <p className="text-sm font-semibold tracking-wide text-white">结构化病历生成中</p>
+            </div>
+            <div className="space-y-3 font-mono text-sm leading-relaxed text-blue-50/90">
+              <p>识别临床上下文逻辑...</p>
+              <p>映射 HIS 系统标准字段...</p>
+              <p className="font-medium text-blue-200">生成临床甲级病历。</p>
+            </div>
+          </motion.div>
+        )}
       </section>
 
-      {/* Conflict Section (痛点剧场) */}
-      <section id="conflict" className="py-20 md:py-24 bg-white relative">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="text-center max-w-3xl mx-auto mb-12 md:mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4 tracking-tight">重塑临床生产力，让医生回归诊断本质</h2>
-            <p className="text-slate-500 text-lg">改变“填表计费”主导的反临床思维，将“文书负担”转变为“数据资产”</p>
+      <section id="conflict" className="bg-white py-20 md:py-24">
+        <div className="mx-auto max-w-7xl px-6">
+          <div className="mx-auto mb-14 max-w-3xl text-center">
+            <h2 className="mb-4 text-3xl font-bold tracking-tight text-slate-950 md:text-4xl">
+              重塑临床生产力，让医生回归诊断本质
+            </h2>
+            <p className="text-lg text-slate-500">
+              改变“填表计费”主导的反临床思维，将“文书负担”转变为“数据资产”。
+            </p>
           </div>
 
-          <div className="relative max-w-5xl mx-auto rounded-3xl overflow-hidden py-10 md:py-16 px-4 md:px-0">
-            {/* Left background representing the past/pain */}
-            <div className="absolute left-0 top-0 bottom-0 w-full md:w-1/2 bg-stone-50/50 md:bg-stone-50/80 z-0" />
-            
-            {/* Continuous Vertical midline */}
-            <div className="absolute left-1/2 top-0 bottom-0 w-px bg-slate-200 -translate-x-1/2 hidden md:block z-0" />
-            
-            {/* VS Badge absolutely centered in the whole block */}
-            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10 hidden md:flex w-14 h-14 bg-primary-600 rounded-full shadow-lg items-center justify-center text-white font-bold tracking-widest border-4 border-white">
+          <div className="relative mx-auto max-w-5xl overflow-hidden rounded-lg border border-slate-100 bg-white">
+            <div className="absolute left-0 top-0 hidden h-full w-1/2 bg-stone-50 md:block" />
+            <div className="absolute left-1/2 top-0 hidden h-full w-px -translate-x-1/2 bg-slate-200 md:block" />
+            <div className="absolute left-1/2 top-1/2 z-10 hidden h-14 w-14 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-4 border-white bg-primary-600 text-sm font-bold tracking-widest text-white shadow-lg md:flex">
               VS
             </div>
 
-            <div className="space-y-16 md:space-y-20 relative z-10">
-              
-              {/* Row 1 / Efficiency */}
-              <div className="grid md:grid-cols-2 gap-8 md:gap-24 relative items-center">
-                {/* Left */}
-                <div className="text-left md:text-right flex flex-col justify-center px-6 md:px-0">
-                  <h3 className="text-xl font-semibold text-slate-800 mb-3 leading-[1.6]">
-                    医生在诊疗中平均点击鼠标
-                    <strong className="text-2xl md:text-3xl font-black text-[#5C4033] mx-1 align-baseline tracking-tight">400</strong>
-                    次/小时
-                  </h3>
-                  <p className="text-slate-500 text-sm leading-relaxed">诊疗中的核心认知资源，被文书系统持续侵占。</p>
+            <div className="relative z-10 space-y-12 px-6 py-10 md:px-10 md:py-14">
+              {conflictRows.map((row) => (
+                <div key={`${row.beforeMetric}-${row.afterMetric}`} className="grid gap-8 md:grid-cols-2 md:gap-24">
+                  <div className="md:text-right">
+                    <h3 className="mb-3 text-xl font-semibold leading-relaxed text-slate-800">
+                      {row.beforeTitle}
+                      <strong className="mx-1 text-2xl font-black tracking-tight text-stone-700 md:text-3xl">
+                        {row.beforeMetric}
+                      </strong>
+                      {row.beforeSuffix}
+                    </h3>
+                    <p className="text-sm leading-relaxed text-slate-500">{row.beforeCopy}</p>
+                  </div>
+                  <div>
+                    <h3 className="mb-3 text-xl font-semibold leading-relaxed text-slate-800">
+                      {row.afterTitle}
+                      <strong className="mx-1 text-2xl font-black tracking-tight text-primary-600 md:text-3xl">
+                        {row.afterMetric}
+                      </strong>
+                      {row.afterSuffix}
+                    </h3>
+                    <p className="text-sm leading-relaxed text-slate-600">{row.afterCopy}</p>
+                  </div>
                 </div>
-                {/* Right */}
-                <div className="text-left flex flex-col justify-center px-6 md:px-0">
-                  <h3 className="text-xl font-semibold text-slate-800 mb-3 leading-[1.6]">
-                    AI实时捕获，医生
-                    <strong className="text-2xl md:text-3xl font-black text-primary-600 mx-1 align-baseline tracking-tight">只做判断</strong>
-                  </h3>
-                  <p className="text-slate-600 text-sm leading-relaxed">释放医生认知带宽，AI实时捕获临床语义，医生仅需逻辑确认，将精力还给患者。</p>
-                </div>
-              </div>
-
-              {/* Row 2 / Quality */}
-              <div className="grid md:grid-cols-2 gap-8 md:gap-24 relative items-center">
-                {/* Left */}
-                <div className="text-left md:text-right flex flex-col justify-center px-6 md:px-0 order-2 md:order-1">
-                  <h3 className="text-xl font-semibold text-slate-800 mb-3 leading-[1.6]">
-                    传统系统以
-                    <strong className="text-2xl md:text-3xl font-black text-[#5C4033] mx-1 align-baseline tracking-tight">"填表"</strong>
-                    和 
-                    <strong className="text-2xl md:text-3xl font-black text-[#5C4033] mx-1 align-baseline tracking-tight">"计费"</strong>
-                    为导向
-                  </h3>
-                  <p className="text-slate-500 text-sm leading-relaxed">口语表达与规范文书之间存在结构性断层，手动转译耗时且标准难统一，将医生异化为数据录入员。</p>
-                </div>
-                {/* Right */}
-                <div className="text-left flex flex-col justify-center px-6 md:px-0 order-1 md:order-2">
-                  <h3 className="text-xl font-semibold text-slate-800 mb-3 leading-[1.6]">
-                    <strong className="text-2xl md:text-3xl font-black text-primary-600 mr-1 align-baseline tracking-tight">95%+</strong>
-                    直接入库率
-                  </h3>
-                  <p className="text-slate-600 text-sm leading-relaxed">基于德国AI团队算法和三甲医院临床专家指导，口语化表达自动转化为规范医学文书，无需手动修改。</p>
-                </div>
-              </div>
-
-              {/* Row 3 / Compliance */}
-              <div className="grid md:grid-cols-2 gap-8 md:gap-24 relative items-center">
-                {/* Left */}
-                <div className="text-left md:text-right flex flex-col justify-center px-6 md:px-0 order-2 md:order-1">
-                  <h3 className="text-xl font-semibold text-slate-800 mb-3 leading-[1.6]">
-                    <strong className="text-2xl md:text-3xl font-black text-[#5C4033] mr-1 align-baseline tracking-tight">医疗纠纷风险</strong>
-                    隐性累积
-                  </h3>
-                  <p className="text-slate-500 text-sm leading-relaxed">病历被视为文书负担而非资产。流水账式记录导致临床上下文一致性极难保证，病历合规依赖事后人工审查。</p>
-                </div>
-                {/* Right */}
-                <div className="text-left flex flex-col justify-center px-6 md:px-0 order-1 md:order-2">
-                  <h3 className="text-xl font-semibold text-slate-800 mb-3 leading-[1.6]">
-                    <strong className="text-2xl md:text-3xl font-black text-primary-600 mr-1 align-baseline tracking-tight">100%</strong>
-                    一致性自动校验
-                  </h3>
-                  <p className="text-slate-600 text-sm leading-relaxed">生成文书同步深度结构化。自动进行一致性检查，将合规性从“事后补救”升维至“事前预防”。</p>
-                </div>
-              </div>
-
+              ))}
             </div>
           </div>
         </div>
       </section>
 
-      {/* Solution Demo (双场景交互) */}
-      <section id="solution" className="py-24 bg-slate-900 text-white relative overflow-hidden">
-        <div className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none">
-          {/* Subtle grid pattern */}
-          <div className="w-full h-full" style={{ backgroundImage: 'linear-gradient(#334155 1px, transparent 1px), linear-gradient(90deg, #334155 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
-        </div>
-        
-        <div className="max-w-7xl mx-auto px-6 relative z-10">
-          <div className="text-center max-w-3xl mx-auto mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4 tracking-tight">无缝融入每一种临床场景</h2>
-            <p className="text-slate-400 text-lg">极简硬件集成，无需改变现有工作流</p>
+      <section id="solution" className="relative overflow-hidden bg-slate-900 py-24 text-white">
+        <div
+          className="absolute inset-0 opacity-10"
+          style={{
+            backgroundImage: 'linear-gradient(#334155 1px, transparent 1px), linear-gradient(90deg, #334155 1px, transparent 1px)',
+            backgroundSize: '40px 40px',
+          }}
+        />
+        <div className="relative z-10 mx-auto max-w-7xl px-6">
+          <div className="mx-auto mb-14 max-w-3xl text-center">
+            <h2 className="mb-4 text-3xl font-bold tracking-tight md:text-4xl">无缝融入每一种临床场景</h2>
+            <p className="text-lg text-slate-400">极简硬件集成，无需改变现有工作流。</p>
           </div>
 
-          <div className="w-full bg-slate-800/50 border border-slate-700 rounded-3xl p-6 md:p-12 mb-16 relative backdrop-blur-sm min-h-[500px] flex items-center justify-center">
-             
-             {/* Slider Controls */}
-             <button 
-                onClick={handlePrevSolution}
-                className="absolute left-2 md:-left-6 top-1/2 -translate-y-1/2 w-12 h-12 bg-slate-800 border border-slate-600 rounded-full flex items-center justify-center text-white hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-primary-500 z-20 shadow-xl transition-all hover:scale-110"
-             >
-                <ChevronLeft className="w-6 h-6" />
-             </button>
-             
-             <button 
-                onClick={handleNextSolution}
-                className="absolute right-2 md:-right-6 top-1/2 -translate-y-1/2 w-12 h-12 bg-slate-800 border border-slate-600 rounded-full flex items-center justify-center text-white hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-primary-500 z-20 shadow-xl transition-all hover:scale-110"
-             >
-                <ChevronRight className="w-6 h-6" />
-             </button>
+          <div className="relative flex min-h-[520px] items-center overflow-hidden rounded-lg border border-slate-700 bg-slate-800/55 p-6 backdrop-blur-sm md:p-12">
+            <button
+              onClick={() => {
+                setSolutionIndex((current) => (current - 1 + solutionScenarios.length) % solutionScenarios.length);
+                trackEvent('solution-slide-prev');
+              }}
+              className="absolute left-3 top-1/2 z-20 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-slate-600 bg-slate-800 text-white transition hover:bg-slate-700 md:left-5"
+              aria-label="上一个场景"
+            >
+              <ChevronLeft className="h-5 w-5" />
+            </button>
 
-             <div className="w-full h-full relative overflow-hidden flex items-center justify-center">
-               <AnimatePresence mode="wait">
-                 <motion.div
-                   key={solutionIndex}
-                   initial={{ opacity: 0, x: 50 }}
-                   animate={{ opacity: 1, x: 0 }}
-                   exit={{ opacity: 0, x: -50 }}
-                   transition={{ duration: 0.4 }}
-                   className="w-full flex flex-col md:flex-row items-center justify-between gap-8 md:gap-16 px-4 md:px-8"
-                 >
-                    {/* Text Area */}
-                    <div className="flex-1 space-y-6 text-center md:text-left">
-                       <div className={cn("inline-flex items-center px-4 py-1.5 rounded-full border text-sm font-medium", solutionScenarios[solutionIndex].labelStyle)}>
-                         {solutionScenarios[solutionIndex].label}
-                       </div>
-                       <h3 className="text-3xl md:text-4xl font-semibold leading-tight">{solutionScenarios[solutionIndex].title}</h3>
-                       <p className="text-slate-400 leading-relaxed text-base md:text-lg max-w-lg mx-auto md:mx-0">
-                         {solutionScenarios[solutionIndex].desc}
-                       </p>
-                    </div>
+            <button
+              onClick={() => {
+                setSolutionIndex((current) => (current + 1) % solutionScenarios.length);
+                trackEvent('solution-slide-next');
+              }}
+              className="absolute right-3 top-1/2 z-20 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-slate-600 bg-slate-800 text-white transition hover:bg-slate-700 md:right-5"
+              aria-label="下一个场景"
+            >
+              <ChevronRight className="h-5 w-5" />
+            </button>
 
-                    {/* Video Demo Area */}
-                    <div className="flex-1 w-full min-h-[350px] md:min-h-[450px] bg-slate-950 rounded-2xl border border-slate-700 shadow-2xl relative group overflow-hidden">
-                        <video
-                          key={solutionScenarios[solutionIndex].video}
-                          src={solutionScenarios[solutionIndex].video}
-                          autoPlay
-                          muted
-                          loop
-                          playsInline
-                          className="w-full h-full object-cover absolute inset-0"
-                        />
-                        {/* Soft vignette overlay */}
-                        <div className="absolute inset-0 pointer-events-none rounded-2xl" style={{ boxShadow: 'inset 0 0 60px 20px rgba(2,6,23,0.55)' }} />
-                        {/* Soft visual glow matching scenario color */}
-                        <div className={cn(
-                          "absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 blur-[120px] opacity-15 pointer-events-none rounded-full transition-colors duration-1000",
-                          solutionIndex === 0 ? "bg-blue-500" : "bg-purple-500"
-                        )} />
-                    </div>
-                 </motion.div>
-               </AnimatePresence>
-             </div>
-             
-             {/* Pagination Dots */}
-             <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-3 z-20">
-               {solutionScenarios.map((_, i) => (
-                 <button
-                   key={i}
-                   onClick={() => setSolutionIndex(i)}
-                   className={cn(
-                     "w-2.5 h-2.5 rounded-full transition-all focus:outline-none",
-                     i === solutionIndex ? "bg-white w-8" : "bg-slate-600 hover:bg-slate-400"
-                   )}
-                   aria-label={`Go to slide ${i + 1}`}
-                 />
-               ))}
-             </div>
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={activeScenario.title}
+                initial={{ opacity: 0, x: 42 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -42 }}
+                transition={{ duration: 0.35 }}
+                className="grid w-full items-center gap-10 px-8 md:grid-cols-2 md:px-12"
+              >
+                <div className="text-center md:text-left">
+                  <span className={cn('mb-6 inline-flex rounded-full border px-4 py-1.5 text-sm font-medium', activeScenario.labelStyle)}>
+                    {activeScenario.label}
+                  </span>
+                  <h3 className="mb-5 text-3xl font-semibold leading-tight md:text-4xl">{activeScenario.title}</h3>
+                  <p className="mx-auto max-w-lg text-base leading-relaxed text-slate-300 md:mx-0 md:text-lg">
+                    {activeScenario.desc}
+                  </p>
+                </div>
+
+                <div className="relative min-h-[320px] overflow-hidden rounded-lg border border-slate-700 bg-slate-950 shadow-2xl md:min-h-[430px]">
+                  <video
+                    key={activeScenario.video}
+                    src={activeScenario.video}
+                    autoPlay
+                    muted
+                    loop
+                    playsInline
+                    preload="metadata"
+                    className="absolute inset-0 h-full w-full object-cover"
+                  />
+                  <div className="absolute inset-0 rounded-lg shadow-[inset_0_0_60px_18px_rgba(2,6,23,0.52)]" />
+                </div>
+              </motion.div>
+            </AnimatePresence>
           </div>
         </div>
       </section>
 
-      {/* Customization (深度定制化) */}
-      <section id="customization" className="py-24 bg-slate-50 relative">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="grid lg:grid-cols-2 gap-16 items-center">
-            
-            <div>
-              <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-6 tracking-tight">每一个科室，都有自己的思维模型。</h2>
-              <p className="text-slate-600 text-lg mb-10 leading-relaxed">
-                我们不改变您的工作习惯。系统集成在现有医疗信息系统中，高度适应科室特定的术语体系与中西医模板格式。
-              </p>
-
-              <div className="space-y-6">
-                <div className="flex gap-4">
-                  <div className="mt-1 w-6 h-6 rounded-full bg-primary-100 flex items-center justify-center flex-shrink-0">
-                    <div className="w-2 h-2 rounded-full bg-primary-500" />
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-slate-800 mb-1">无感工作流嵌入</h4>
-                    <p className="text-slate-500 text-sm">不推翻现有传统 HIS 系统，作为其录入层插件静默运作，转化成本极低。</p>
-                  </div>
-                </div>
-                <div className="flex gap-4">
-                  <div className="mt-1 w-6 h-6 rounded-full bg-primary-100 flex items-center justify-center flex-shrink-0">
-                    <div className="w-2 h-2 rounded-full bg-primary-500" />
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-slate-800 mb-1">专属数据飞轮</h4>
-                    <p className="text-slate-500 text-sm">每一次对病历的更改，都是在完成一次临床思维的同步。系统会实时沉淀您的表达习惯，让 AI 随您的诊疗风格深度进化</p>
-                  </div>
-                </div>
-                <div className="flex gap-4">
-                  <div className="mt-1 w-6 h-6 rounded-full bg-primary-100 flex items-center justify-center flex-shrink-0">
-                    <div className="w-2 h-2 rounded-full bg-primary-500" />
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-slate-800 mb-1">三甲级私有底座</h4>
-                    <p className="text-slate-500 text-sm">支持私有云部署方案，等保备案通过，满足三甲医院严苛的数据出域合规要求。</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-xl relative overflow-hidden">
-              <div className="absolute top-0 right-0 p-32 bg-primary-500/5 rounded-full blur-3xl z-0" />
-              
-              <div className="relative z-10 flex gap-4 overflow-x-auto pb-4 hide-scrollbar">
-                {departments.map((dept, index) => {
-                  const Icon = dept.icon;
-                  return (
-                    <button
-                      key={dept.name}
-                      onClick={() => setActiveDepartment(index)}
-                      className={cn(
-                        "flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap",
-                        activeDepartment === index 
-                          ? "bg-primary-500 text-white shadow-md"
-                          : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                      )}
-                    >
-                      <Icon className="w-4 h-4" />
-                      {dept.name}
-                    </button>
-                  );
-                })}
-              </div>
-
-              <div className="relative z-10 mt-6 bg-slate-50 rounded-2xl p-6 border border-slate-100 font-mono text-sm leading-relaxed text-slate-700 min-h-[250px] shadow-inner">
-                <AnimatePresence mode="wait">
-                  <motion.div
-                    key={activeDepartment}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    <div className="flex items-center justify-between mb-4 pb-4 border-b border-slate-200">
-                      <span className="font-semibold text-primary-600">模板自动适配: {departments[activeDepartment].name}</span>
-                      <span className="text-xs text-green-600 bg-green-100 px-2 py-1 rounded-full animate-pulse">✓ 结构化校验通过</span>
-                    </div>
-                    {departments[activeDepartment].preview.split('\n').map((line, i) => (
-                      <p key={i} className="mb-2">
-                        {line.includes('：') ? (
-                          <>
-                            <strong className="text-slate-600">{line.split('：')[0]}：</strong>
-                            <span className="text-slate-800">{line.split('：')[1]}</span>
-                          </>
-                        ) : line}
-                      </p>
-                    ))}
-                    <div className="mt-8 pt-4 space-y-2 opacity-30">
-                      <div className="h-2 w-full bg-slate-300 rounded-full" />
-                      <div className="h-2 w-4/5 bg-slate-300 rounded-full" />
-                      <div className="h-2 w-2/3 bg-slate-300 rounded-full" />
-                    </div>
-                  </motion.div>
-                </AnimatePresence>
-              </div>
-
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ROI & Team Elements */}
-      <section className="py-24 bg-white border-t border-slate-100">
-        <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-2 gap-16">
-          
-          {/* ROI */}
+      <section id="customization" className="bg-slate-50 py-24">
+        <div className="mx-auto grid max-w-7xl items-center gap-14 px-6 lg:grid-cols-2">
           <div>
-            <h3 className="text-2xl font-bold mb-8 text-slate-900">核心商业价值 (ROI)</h3>
-            <div className="space-y-4">
-              <div className="flex items-center gap-6 p-6 rounded-2xl bg-slate-50 border border-slate-100/80">
-                <div className="w-28 md:w-32 flex-shrink-0">
-                  <span className="text-5xl font-black text-primary-600 tracking-tight">95<span className="text-3xl">% +</span></span>
+            <h2 className="mb-6 text-3xl font-bold tracking-tight text-slate-950 md:text-4xl">
+              每一个科室，都有自己的思维模型。
+            </h2>
+            <p className="mb-10 text-lg leading-relaxed text-slate-600">
+              系统集成在现有医疗信息系统中，高度适应科室特定的术语体系与中西医模板格式。
+            </p>
+
+            <div className="space-y-6">
+              {[
+                ['无感工作流嵌入', '不推翻现有 HIS 系统，作为录入层插件静默运作，转化成本低。'],
+                ['专属数据飞轮', '每一次病历修改都会沉淀科室表达习惯，让 AI 随诊疗风格深度进化。'],
+                ['三甲级私有底座', '支持私有云部署、等保备案与院内数据安全要求。'],
+              ].map(([title, copy]) => (
+                <div key={title} className="flex gap-4">
+                  <span className="mt-1 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-primary-100">
+                    <span className="h-2 w-2 rounded-full bg-primary-500" />
+                  </span>
+                  <div>
+                    <h3 className="mb-1 font-semibold text-slate-800">{title}</h3>
+                    <p className="text-sm leading-relaxed text-slate-500">{copy}</p>
+                  </div>
                 </div>
-                <p className="text-slate-600 font-medium">直接入库率<br/><span className="text-xs text-slate-500 font-normal mt-1 block">无感完成合规标准，无需二次手动修改</span></p>
-              </div>
-              <div className="flex items-center gap-6 p-6 rounded-2xl bg-slate-50 border border-slate-100/80">
-                <div className="w-28 md:w-32 flex-shrink-0">
-                  <span className="text-5xl font-black text-primary-600 tracking-tight">50<span className="text-3xl">%</span></span>
-                </div>
-                <p className="text-slate-600 font-medium">文书时间节省<br/><span className="text-xs text-slate-500 font-normal mt-1 block">从每日2小时录入降至仅需核对</span></p>
-              </div>
-              <div className="flex items-center gap-6 p-6 rounded-2xl bg-slate-50 border border-slate-100/80">
-                <div className="w-28 md:w-32 flex-shrink-0">
-                  <span className="text-5xl font-black text-primary-600 tracking-tight">100<span className="text-3xl">%</span></span>
-                </div>
-                <p className="text-slate-600 font-medium">一致性机审校验<br/><span className="text-xs text-slate-500 font-normal mt-1 block">事前预防上下文矛盾，大幅降低内控及纠纷风险</span></p>
-              </div>
+              ))}
             </div>
-            <p className="text-xs text-slate-400 mt-4 text-right pr-2 tracking-wide">* 基于试点科室真实数据测量</p>
           </div>
 
-          {/* Team */}
-          <div className="flex flex-col justify-start h-full relative group">
-            <h3 className="text-2xl font-bold mb-8 text-slate-900 relative z-10">我们的团队</h3>
-            <div className="space-y-8 relative pl-6 border-l-2 border-slate-100 z-10">
-              <div className="relative">
-                <div className="absolute -left-[33px] top-1 w-4 h-4 rounded-full bg-white border-4 border-primary-500" />
-                <h4 className="text-lg font-bold text-slate-800 flex items-center gap-2">
-                  顶尖技术背景
-                </h4>
-                <p className="mt-2 text-slate-600 leading-relaxed text-sm">
-                  核心研发成员均来自德国慕尼黑工业大学人工智能领域硕博团队，长期深耕企业级复杂数据系统与前沿大语言模型微调算法，拥有千万级工业数据处理经验。
-                </p>
-              </div>
-              <div className="relative">
-                <div className="absolute -left-[33px] top-1 w-4 h-4 rounded-full bg-white border-4 border-primary-500" />
-                <h4 className="text-lg font-bold text-slate-800 flex items-center gap-2">
-                  深度临床基因
-                </h4>
-                <p className="mt-2 text-slate-600 leading-relaxed text-sm">
-                  产品工作流设计由国内三甲医院（肾内科等重点科室）主任医师全程深度参与指导。真正做到“为医生设计，为医疗所用”。
-                </p>
-              </div>
+          <div className="overflow-hidden rounded-lg border border-slate-200 bg-white p-6 shadow-xl">
+            <div className="flex gap-3 overflow-x-auto pb-4">
+              {departments.map((dept, index) => {
+                const Icon = dept.icon;
+
+                return (
+                  <button
+                    key={dept.name}
+                    onClick={() => {
+                      setActiveDepartment(index);
+                      trackEvent('department-select', { department: dept.name });
+                    }}
+                    className={cn(
+                      'inline-flex items-center gap-2 whitespace-nowrap rounded-full px-4 py-2 text-sm font-medium transition',
+                      activeDepartment === index
+                        ? 'bg-primary-500 text-white shadow-sm'
+                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200',
+                    )}
+                  >
+                    <Icon className="h-4 w-4" />
+                    {dept.name}
+                  </button>
+                );
+              })}
             </div>
 
-            {/* Munich Skyline Watermark */}
-            <div className="mt-6 md:mt-auto relative w-full flex-grow min-h-[160px] md:min-h-[240px] overflow-hidden pointer-events-none z-0">
-                <img 
-                   src={`${import.meta.env.BASE_URL}munich_silhouette.png?v=5`} 
-                   alt="Munich Skyline Watermark" 
-                   className="absolute bottom-0 right-[-10%] md:right-[-5%] w-[110%] md:w-[90%] max-w-none opacity-[0.11] mix-blend-multiply transition-transform duration-1000 origin-bottom group-hover:scale-[1.04] translate-y-[28%]" 
-                />
+            <div className="mt-6 min-h-[250px] rounded-lg border border-slate-100 bg-slate-50 p-6 font-mono text-sm leading-relaxed text-slate-700 shadow-inner">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={activeDept.name}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.25 }}
+                >
+                  <div className="mb-4 flex items-center justify-between border-b border-slate-200 pb-4">
+                    <span className="font-semibold text-primary-600">模板自动适配：{activeDept.name}</span>
+                    <span className="rounded-full bg-green-100 px-2 py-1 text-xs text-green-600">结构化校验通过</span>
+                  </div>
+                  {activeDept.preview.map((line) => {
+                    const [label, copy] = line.split('：');
+
+                    return (
+                      <p key={line} className="mb-3">
+                        <strong className="text-slate-600">{label}：</strong>
+                        <span className="text-slate-800">{copy}</span>
+                      </p>
+                    );
+                  })}
+                  <div className="mt-8 space-y-2 opacity-30">
+                    <div className="h-2 w-full rounded-full bg-slate-300" />
+                    <div className="h-2 w-4/5 rounded-full bg-slate-300" />
+                    <div className="h-2 w-2/3 rounded-full bg-slate-300" />
+                  </div>
+                </motion.div>
+              </AnimatePresence>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Footer & Contact Form */}
-      <footer id="contact" className="bg-slate-900 border-t border-slate-800 pt-20 pb-10">
-        <div className="max-w-4xl mx-auto px-6">
-          <div className="bg-primary-600 rounded-3xl p-10 md:p-16 text-center text-white mb-20 shadow-2xl relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3" />
-            <h2 className="text-3xl md:text-4xl font-bold mb-4 relative z-10">开启 3 个月低门槛试用计划</h2>
-            <p className="text-primary-100 mb-10 max-w-xl mx-auto relative z-10 text-lg">
+      <section id="value" className="border-t border-slate-100 bg-white py-24">
+        <div className="mx-auto grid max-w-7xl gap-16 px-6 md:grid-cols-2">
+          <div>
+            <h2 className="mb-8 text-2xl font-bold text-slate-950">核心商业价值</h2>
+            <div className="space-y-4">
+              {[
+                ['95%+', '直接入库率', '无感完成合规标准，无需二次手动修改'],
+                ['50%', '文书时间节省', '从每日录入降至重点核对'],
+                ['100%', '一致性机审校验', '事前预防上下文矛盾，降低内控及纠纷风险'],
+              ].map(([metric, title, copy]) => (
+                <div key={metric} className="flex items-center gap-6 rounded-lg border border-slate-100 bg-slate-50 p-6">
+                  <div className="w-28 flex-shrink-0 text-4xl font-black tracking-tight text-primary-600 md:w-32 md:text-5xl">
+                    {metric}
+                  </div>
+                  <p className="font-medium text-slate-700">
+                    {title}
+                    <span className="mt-1 block text-xs font-normal leading-relaxed text-slate-500">{copy}</span>
+                  </p>
+                </div>
+              ))}
+            </div>
+            <p className="mt-4 text-right text-xs tracking-wide text-slate-400">* 基于试点科室真实数据测量</p>
+          </div>
+
+          <div className="relative flex min-h-[520px] flex-col overflow-hidden">
+            <h2 className="relative z-10 mb-8 text-2xl font-bold text-slate-950">我们的团队</h2>
+            <div className="relative z-10 space-y-8 border-l-2 border-slate-100 pl-6">
+              <div className="relative">
+                <span className="absolute -left-[33px] top-1 h-4 w-4 rounded-full border-4 border-primary-500 bg-white" />
+                <h3 className="text-lg font-bold text-slate-800">顶尖技术背景</h3>
+                <p className="mt-2 text-sm leading-relaxed text-slate-600">
+                  核心研发成员来自德国慕尼黑工业大学人工智能领域硕博团队，长期深耕企业级复杂数据系统与前沿大语言模型微调算法。
+                </p>
+              </div>
+              <div className="relative">
+                <span className="absolute -left-[33px] top-1 h-4 w-4 rounded-full border-4 border-primary-500 bg-white" />
+                <h3 className="text-lg font-bold text-slate-800">深度临床基因</h3>
+                <p className="mt-2 text-sm leading-relaxed text-slate-600">
+                  产品工作流设计由国内三甲医院重点科室主任医师全程参与指导，真正做到为医生设计、为医疗所用。
+                </p>
+              </div>
+            </div>
+            <img
+              src={asset('munich_silhouette.webp')}
+              alt=""
+              width="640"
+              height="640"
+              loading="lazy"
+              decoding="async"
+              className="pointer-events-none absolute bottom-0 right-[-8%] z-0 w-[95%] max-w-none translate-y-[28%] opacity-[0.11] mix-blend-multiply"
+            />
+          </div>
+        </div>
+      </section>
+
+      <footer id="contact" className="border-t border-slate-800 bg-slate-900 pb-10 pt-20">
+        <div className="mx-auto max-w-4xl px-6">
+          <div className="mb-16 overflow-hidden rounded-lg bg-primary-600 p-8 text-center text-white shadow-2xl md:p-14">
+            <h2 className="mb-4 text-3xl font-bold md:text-4xl">开启 3 个月低门槛试用计划</h2>
+            <p className="mx-auto mb-8 max-w-xl text-lg text-primary-100">
               提交您的专业信息，我们的临床实施顾问将会在 24 小时内与您取得联系，安排专属演示方案。
             </p>
-            
-            {/* Contact Form via Web3Forms */}
+
+            <div className="mb-8 grid gap-3 text-left sm:grid-cols-3">
+              {contactItems.map((item) => {
+                const Icon = item.icon;
+
+                return (
+                  <div key={item.title} className="rounded-lg border border-white/15 bg-white/10 p-4">
+                    <Icon className="mb-3 h-5 w-5 text-white" />
+                    <p className="mb-1 text-sm font-semibold">{item.title}</p>
+                    <p className="text-xs leading-relaxed text-primary-100/85">{item.desc}</p>
+                  </div>
+                );
+              })}
+            </div>
+
             {formStatus === 'success' ? (
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="max-w-md mx-auto relative z-10 bg-white/10 backdrop-blur border border-white/20 rounded-2xl p-10 text-center"
+                className="mx-auto max-w-md rounded-lg border border-white/20 bg-white/10 p-10 text-center backdrop-blur"
               >
-                <div className="text-5xl mb-4">✅</div>
-                <h3 className="text-xl font-bold text-white mb-2">提交成功！</h3>
-                <p className="text-primary-100 text-sm">我们的临床实施顾问将在 24 小时内与您联系，请保持电话畅通。</p>
+                <h3 className="mb-2 text-xl font-bold text-white">提交成功</h3>
+                <p className="text-sm text-primary-100">我们的临床实施顾问将在 24 小时内与您联系，请保持电话畅通。</p>
                 <button
                   onClick={() => setFormStatus('idle')}
-                  className="mt-6 text-xs text-white/50 hover:text-white transition-colors underline underline-offset-2"
-                >重新提交</button>
+                  className="mt-6 text-xs text-white/70 underline underline-offset-2 transition hover:text-white"
+                >
+                  重新提交
+                </button>
               </motion.div>
             ) : (
               <form
-                className="max-w-md mx-auto relative z-10 space-y-4"
-                onSubmit={async (e) => {
-                  e.preventDefault();
+                className="mx-auto max-w-md space-y-4"
+                onSubmit={async (event) => {
+                  event.preventDefault();
                   setFormStatus('loading');
-                  const formData = new FormData(e.currentTarget);
-                  formData.append('access_key', '08e647fa-8372-4420-8260-46892d8c9993');
+
+                  const formData = new FormData(event.currentTarget);
+
                   try {
-                    const res = await fetch('https://api.web3forms.com/submit', {
+                    const response = await fetch(CONTACT_ENDPOINT, {
                       method: 'POST',
                       body: formData,
+                      headers: { Accept: 'application/json' },
                     });
-                    const data = await res.json();
-                    setFormStatus(data.success ? 'success' : 'error');
+                    const nextStatus = response.ok ? 'success' : 'error';
+                    setFormStatus(nextStatus);
+                    trackEvent('contact-form-submit', { status: nextStatus });
                   } catch {
                     setFormStatus('error');
+                    trackEvent('contact-form-submit', { status: 'error' });
                   }
                 }}
               >
+                <input type="hidden" name="subject" value="MediCore 官网试用申请" />
                 <input
                   type="text"
                   name="name"
                   required
+                  autoComplete="name"
                   placeholder="您的姓名"
-                  className="w-full px-5 py-3 rounded-xl bg-white/10 border border-white/20 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-white/50 transition-all font-medium"
+                  className="w-full rounded-lg border border-white/20 bg-white/10 px-5 py-3 font-medium text-white placeholder-white/55 transition focus:outline-none focus:ring-2 focus:ring-white/50"
                 />
                 <input
                   type="text"
                   name="hospital"
                   required
                   placeholder="所属医院及科室"
-                  className="w-full px-5 py-3 rounded-xl bg-white/10 border border-white/20 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-white/50 transition-all font-medium"
+                  className="w-full rounded-lg border border-white/20 bg-white/10 px-5 py-3 font-medium text-white placeholder-white/55 transition focus:outline-none focus:ring-2 focus:ring-white/50"
                 />
                 <input
                   type="tel"
                   name="phone"
                   required
+                  autoComplete="tel"
                   placeholder="联系电话"
-                  className="w-full px-5 py-3 rounded-xl bg-white/10 border border-white/20 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-white/50 transition-all font-medium"
+                  className="w-full rounded-lg border border-white/20 bg-white/10 px-5 py-3 font-medium text-white placeholder-white/55 transition focus:outline-none focus:ring-2 focus:ring-white/50"
                 />
                 {formStatus === 'error' && (
-                  <p className="text-red-300 text-sm text-center">提交失败，请检查网络连接后重试。</p>
+                  <p className="text-center text-sm text-red-200">提交失败，请检查网络连接后重试。</p>
                 )}
                 <button
                   type="submit"
                   disabled={formStatus === 'loading'}
-                  className="w-full py-4 rounded-xl bg-white text-primary-600 font-bold text-lg hover:bg-slate-50 transition-all flex items-center justify-center gap-2 group disabled:opacity-60 disabled:cursor-not-allowed"
+                  data-umami-event="contact-submit-click"
+                  className="flex w-full items-center justify-center gap-2 rounded-lg bg-white py-4 text-lg font-bold text-primary-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {formStatus === 'loading' ? '提交中...' : '立即联系我们'}
-                  {formStatus !== 'loading' && <Send className="w-5 h-5 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />}
+                  {formStatus !== 'loading' && <Send className="h-5 w-5" />}
                 </button>
-                <p className="text-xs text-primary-200/60 font-mono mt-4">
-                  * 本表单经 Web3Forms 安全加密接入，提交即送达专属邮箱通道。
+                <p className="mt-4 text-xs text-primary-200/70">
+                  * 表单提交后会进入 MediCore 官网咨询通道，仅用于试用沟通。
                 </p>
               </form>
             )}
           </div>
 
-          <div className="flex flex-col md:flex-row items-center justify-between text-slate-500 text-sm border-t border-slate-800 pt-8">
-            <div className="flex items-center gap-2 mb-4 md:mb-0">
-               <Activity className="w-4 h-4 text-slate-400" />
-               <span className="font-bold text-slate-400">MediAI | 医用级专业辅助</span>
+          <div className="flex flex-col items-center justify-between border-t border-slate-800 pt-8 text-sm text-slate-500 md:flex-row">
+            <div className="mb-4 flex items-center gap-2 md:mb-0">
+              <Activity className="h-4 w-4 text-slate-400" />
+              <span className="font-bold text-slate-400">MediCore | 智能病历生成辅助系统</span>
             </div>
-            <p>© {new Date().getFullYear()} MediAI Team. All rights reserved.</p>
+            <p>© {new Date().getFullYear()} {COMPANY_NAME}. All rights reserved.</p>
           </div>
         </div>
       </footer>
