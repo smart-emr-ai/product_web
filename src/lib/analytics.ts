@@ -29,7 +29,11 @@ export function installUmamiAnalytics() {
   script.defer = true;
   script.src = import.meta.env.VITE_UMAMI_SCRIPT_URL || 'https://www.medicore.org.cn/script.js';
   script.dataset.websiteId = websiteId;
-  script.dataset.domains = 'medicore.org.cn,www.medicore.org.cn';
+  if (import.meta.env.VITE_UMAMI_HOST_URL) {
+    script.dataset.hostUrl = import.meta.env.VITE_UMAMI_HOST_URL;
+  }
+  script.dataset.domains =
+    import.meta.env.VITE_UMAMI_DOMAINS || 'medicore.org.cn,www.medicore.org.cn';
   document.head.appendChild(script);
 }
 

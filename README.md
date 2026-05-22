@@ -41,6 +41,49 @@ http://127.0.0.1:4173/
 
 本地预览不需要 ICP 备案，也不会经过火山引擎公网合规拦截。
 
+## 临时可访问地址
+
+备案接入完成前，可以先把官网挂到已备案通过的 `smart-emr.cn` 路径下：
+
+```text
+https://smart-emr.cn/medicore/
+```
+
+这个临时路径对应的 Nginx 片段在：
+
+```text
+deploy/nginx/smart-emr-medicore-path.conf
+```
+
+构建临时路径版本时使用：
+
+```bash
+VITE_BASE_PATH=/medicore/ \
+VITE_UMAMI_WEBSITE_ID=d4a80fea-ed31-4407-b06f-b7784018e032 \
+VITE_UMAMI_SCRIPT_URL=https://smart-emr.cn/medicore-analytics/script.js \
+VITE_UMAMI_HOST_URL=https://smart-emr.cn/medicore-analytics \
+VITE_UMAMI_DOMAINS=medicore.org.cn,www.medicore.org.cn,smart-emr.cn \
+npm run build
+```
+
+Windows PowerShell：
+
+```powershell
+$env:VITE_BASE_PATH="/medicore/"
+$env:VITE_UMAMI_WEBSITE_ID="d4a80fea-ed31-4407-b06f-b7784018e032"
+$env:VITE_UMAMI_SCRIPT_URL="https://smart-emr.cn/medicore-analytics/script.js"
+$env:VITE_UMAMI_HOST_URL="https://smart-emr.cn/medicore-analytics"
+$env:VITE_UMAMI_DOMAINS="medicore.org.cn,www.medicore.org.cn,smart-emr.cn"
+npm run build
+Remove-Item Env:VITE_BASE_PATH
+Remove-Item Env:VITE_UMAMI_WEBSITE_ID
+Remove-Item Env:VITE_UMAMI_SCRIPT_URL
+Remove-Item Env:VITE_UMAMI_HOST_URL
+Remove-Item Env:VITE_UMAMI_DOMAINS
+```
+
+等 `medicore.org.cn` 在火山完成接入备案后，可以删除 `smart-emr.cn` 上的 `/medicore/` 和 `/medicore-analytics/` 临时 location。
+
 ## 构建
 
 ```bash
@@ -62,6 +105,8 @@ VITE_BASE_PATH=/product_web/ npm run build
 ```bash
 VITE_UMAMI_WEBSITE_ID=your-website-id
 VITE_UMAMI_SCRIPT_URL=https://www.medicore.org.cn/script.js
+VITE_UMAMI_HOST_URL=https://www.medicore.org.cn
+VITE_UMAMI_DOMAINS=medicore.org.cn,www.medicore.org.cn
 ```
 
 已记录的事件包括：
@@ -109,6 +154,8 @@ Tracker：https://www.medicore.org.cn/script.js
 ```bash
 $env:VITE_UMAMI_WEBSITE_ID="实际 website id"
 $env:VITE_UMAMI_SCRIPT_URL="https://www.medicore.org.cn/script.js"
+$env:VITE_UMAMI_HOST_URL="https://www.medicore.org.cn"
+$env:VITE_UMAMI_DOMAINS="medicore.org.cn,www.medicore.org.cn"
 npm run build
 ```
 
