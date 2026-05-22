@@ -17,6 +17,7 @@ import { trackEvent, useSectionViewTracking } from './lib/analytics';
 
 const ANALYTICS_SECTIONS = ['hero', 'conflict', 'solution', 'customization', 'value', 'contact'];
 const CONTACT_ENDPOINT = 'https://formspree.io/f/xyzkbwpg';
+const COMPANY_NAME = '医联智芯智能科技（上海）有限公司';
 
 const asset = (name: string) => `${import.meta.env.BASE_URL}${name}`;
 
@@ -645,7 +646,7 @@ export default function App() {
               <Activity className="h-4 w-4 text-slate-400" />
               <span className="font-bold text-slate-400">MediCore | 智能病历生成辅助系统</span>
             </div>
-            <p>© {new Date().getFullYear()} MediCore Team. All rights reserved.</p>
+            <p>© {new Date().getFullYear()} {COMPANY_NAME}. All rights reserved.</p>
           </div>
         </div>
       </footer>

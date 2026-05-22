@@ -27,7 +27,7 @@ export function installUmamiAnalytics() {
 
   const script = document.createElement('script');
   script.defer = true;
-  script.src = import.meta.env.VITE_UMAMI_SCRIPT_URL || 'https://analytics.umami.is/script.js';
+  script.src = import.meta.env.VITE_UMAMI_SCRIPT_URL || 'https://www.medicore.org.cn/script.js';
   script.dataset.websiteId = websiteId;
   script.dataset.domains = 'medicore.org.cn,www.medicore.org.cn';
   document.head.appendChild(script);

@@ -2,6 +2,8 @@
 
 MediCore 官网单页应用，基于 React、Vite、Tailwind CSS 和 Framer Motion 构建。
 
+公司主体：医联智芯智能科技（上海）有限公司。
+
 ## 本地开发
 
 ```bash
@@ -31,7 +33,7 @@ VITE_BASE_PATH=/product_web/ npm run build
 
 ```bash
 VITE_UMAMI_WEBSITE_ID=your-website-id
-VITE_UMAMI_SCRIPT_URL=https://your-umami.example.com/script.js
+VITE_UMAMI_SCRIPT_URL=https://www.medicore.org.cn/script.js
 ```
 
 已记录的事件包括：
@@ -50,6 +52,37 @@ https://formspree.io/f/xyzkbwpg
 ```
 
 如需更换收件通道，只需要修改 `src/App.tsx` 中的 `CONTACT_ENDPOINT`。
+
+Formspree 是第三方表单代收服务：浏览器把表单内容 POST 到 Formspree，Formspree 再转发到收件邮箱或后台。当前只是临时官网咨询通道；如果后续要避免任何第三方表单服务，应改成自有后端接口。
+
+## 自建 Umami
+
+自建 Umami 部署在火山 ECS 上。当前线上使用同域代理，避免新增 DNS 和证书：
+
+```text
+后台入口：https://www.medicore.org.cn/analytics
+Tracker：https://www.medicore.org.cn/script.js
+采集接口：https://www.medicore.org.cn/api/send
+```
+
+部署模板：
+
+- `deploy/umami/docker-compose.yml`
+- `deploy/umami/.env.example`
+- `deploy/nginx/medicore.org.cn.conf`
+
+生产环境不要提交真实 `.env`。服务器上需要单独生成：
+
+- `UMAMI_POSTGRES_PASSWORD`
+- `UMAMI_APP_SECRET`
+
+官网构建时使用 Umami website id：
+
+```bash
+$env:VITE_UMAMI_WEBSITE_ID="实际 website id"
+$env:VITE_UMAMI_SCRIPT_URL="https://www.medicore.org.cn/script.js"
+npm run build
+```
 
 ## Nginx
 
