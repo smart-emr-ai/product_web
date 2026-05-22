@@ -13,6 +13,34 @@ npm run dev
 
 默认本地地址为 `http://127.0.0.1:5173/`。
 
+如果只是想在没有备案放行前本地查看官网，推荐使用：
+
+```bash
+npm ci
+npm run dev -- --host 127.0.0.1
+```
+
+然后在浏览器打开：
+
+```text
+http://127.0.0.1:5173/
+```
+
+也可以查看更接近线上静态产物的 production preview：
+
+```bash
+npm run build
+npm run preview -- --host 127.0.0.1 --port 4173
+```
+
+然后打开：
+
+```text
+http://127.0.0.1:4173/
+```
+
+本地预览不需要 ICP 备案，也不会经过火山引擎公网合规拦截。
+
 ## 构建
 
 ```bash
@@ -100,3 +128,9 @@ npm run build
 - `index.html`：`no-cache`
 - `/assets/`：`public, max-age=31536000, immutable`
 - 图片、视频、字体：`public, max-age=2592000`
+
+## 火山备案状态
+
+当前官网代码、Nginx、HTTPS、自建 Umami 和 ECS 内部访问均已配置完成；但 `medicore.org.cn` / `www.medicore.org.cn` 解析到火山中国大陆 ECS 后，还需要完成火山引擎接入备案，否则国内公网访问会被火山引擎显示「网站暂时无法访问」拦截页。
+
+备案接入由业务负责人在火山控制台处理。备案放行前，可使用上面的本地开发或 production preview 方式查看页面。
