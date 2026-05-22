@@ -41,6 +41,32 @@ http://127.0.0.1:4173/
 
 本地预览不需要 ICP 备案，也不会经过火山引擎公网合规拦截。
 
+## 查看数据后台
+
+备案接入完成前，Umami 后台不占用 `smart-emr.cn` / `www.smart-emr.cn` 官网入口。使用本地 SSH 隧道查看：
+
+```powershell
+.\scripts\open-umami-tunnel.ps1
+```
+
+然后浏览器打开：
+
+```text
+http://127.0.0.1:3001/login
+```
+
+登录密码保存在 ECS：
+
+```powershell
+ssh volc-ecs "cat /opt/smart-emr/apps/product-web/umami-admin-credentials.txt"
+```
+
+如果本机 `3001` 端口被占用，可以换一个端口：
+
+```powershell
+.\scripts\open-umami-tunnel.ps1 -Port 3002
+```
+
 ## 临时可访问地址
 
 备案接入完成前，可以先把官网挂到已备案通过的 `smart-emr.cn` 路径下：
