@@ -84,6 +84,14 @@ Remove-Item Env:VITE_UMAMI_DOMAINS
 
 等 `medicore.org.cn` 在火山完成接入备案后，可以删除 `smart-emr.cn` 上的 `/medicore/` 和 `/medicore-analytics/` 临时 location。
 
+临时 Umami 后台入口：
+
+```text
+https://www.smart-emr.cn/login
+```
+
+`www.smart-emr.cn` 只作为临时 Umami 后台入口使用，主站仍然是 `https://smart-emr.cn/`。
+
 ## 构建
 
 ```bash
