@@ -47,7 +47,10 @@
 - 桶仍保持私有；尚未把未备案域名强行公开绑定。
 - 静态网站默认首页和 404 页面均已设为 `index.html`。
 - 新版 CSS 和 JavaScript 哈希资源已上传成功，上传结果为成功 2、失败 0。
-- 新版根目录 `index.html` 与 `favicon.svg` 仍需在火山引擎控制台手动覆盖；在这两个文件覆盖前，旧首页不会引用新版哈希资源。
+- 新版根目录 `index.html` 与 `favicon.svg` 已于 2026-07-30 16:49 上传完成。
+- `index.html` 的 TOS ETag 为 `2bd6a32e31b49e2eb5964a71768917fa`，与本地构建 MD5 一致。
+- `favicon.svg` 的 TOS ETag 为 `e8fc3cb6bf9fdb8ae7dd70896e1e5e0e`，与本地构建 MD5 一致。
+- TOS 发布文件已完整就绪；因桶保持私有且正式域名尚未绑定，这不代表公网正式站点已经上线。
 - `medicore.group` 当前不配置 A、AAAA 或 CNAME 解析，避免备案前产生错误入口。
 - 免费 DigiCert 证书已签发，证书 ID 为 `cert-de34b7fba01a4ae594c326622d7dd953`，包含 `medicore.group` 和 `www.medicore.group`；证书尚未绑定到 TOS。
 - 正式绑定范围仍限定为裸域名 `medicore.group`。不要因为证书包含 `www` 就自动绑定 `www.medicore.group`。
