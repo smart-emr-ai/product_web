@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://medicore.group/sitemap.xml

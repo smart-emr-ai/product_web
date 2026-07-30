@@ -19,6 +19,7 @@ export default function App() {
   const [heroIndex, setHeroIndex] = useState(0);
   const [solutionIndex, setSolutionIndex] = useState(0);
   const [formStatus, setFormStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+  const [formError, setFormError] = useState('');
 
   const solutionScenarios = [
     {
@@ -58,7 +59,7 @@ export default function App() {
       title: "把时间还给病人，把文书交给 AI。",
       subtitle: "由德国 AI 博士团队与三甲临床专家深度联合，为医生打造的病历生成辅助层。",
       visualPrompt: "[Nano Banana Prompt]: Professional photography, a doctor in a clean white coat working in a modern clinical setting with soft natural window light, looking attentively at a patient (out of frame). High end medical environment, cinematic lighting, medical blue and white tones, depth of field, 8k resolution, photorealistic. Overlay a semi-transparent futuristic UI card floating with clinical text.",
-      image: `${import.meta.env.BASE_URL}hero_1.png`,
+      image: `${import.meta.env.BASE_URL}hero_1.webp`,
       bgPosition: "center 10%",
       bgSize: "cover",
       bgColor: "#0f172a",
@@ -68,7 +69,7 @@ export default function App() {
       title: "每一次自然对谈，都是一份合格病历。",
       subtitle: "实时语义理解、清洗与结构化，一键生成符合国家标准的甲级病历文书。",
       visualPrompt: "[Nano Banana Prompt]: A glowing futuristic 3D funnel diagram in a super clean white studio environment. Top of the funnel shows scattered audio wave icons, the middle shows AI neural network nodes glowing in medical blue, and the bottom outputs neat, structured medical documents. Glassmorphism style, isometric 3D, volumetric lighting, tech-medical aesthetic, highly detailed.",
-      image: `${import.meta.env.BASE_URL}hero_2.png`,
+      image: `${import.meta.env.BASE_URL}hero_2.webp`,
       bgPosition: "120% 30%",
       bgSize: "auto 130%",
       bgColor: "#ffffff",
@@ -86,13 +87,13 @@ export default function App() {
   return (
     <div className="font-sans text-slate-800 bg-slate-50 min-h-screen">
       {/* Navbar */}
-      <nav className="fixed top-0 w-full z-50 bg-white/70 backdrop-blur-md border-b border-white/20 shadow-sm transition-all duration-300">
+      <nav aria-label="主要导航" className="fixed top-0 w-full z-50 bg-white/70 backdrop-blur-md border-b border-white/20 shadow-sm transition-all duration-300">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg bg-primary-500 flex items-center justify-center">
               <Activity className="text-white w-5 h-5" />
             </div>
-            <span className="font-bold text-xl tracking-tight text-primary-600">MediAI<span className="text-slate-400 font-normal">.doc</span></span>
+            <span className="font-bold text-lg sm:text-xl tracking-tight text-primary-600">医联智芯</span>
           </div>
           <div className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-600">
             <a href="#hero" className="hover:text-primary-500 transition-colors">首页</a>
@@ -329,6 +330,7 @@ export default function App() {
              {/* Slider Controls */}
              <button 
                 onClick={handlePrevSolution}
+                aria-label="查看上一个临床场景"
                 className="absolute left-2 md:-left-6 top-1/2 -translate-y-1/2 w-12 h-12 bg-slate-800 border border-slate-600 rounded-full flex items-center justify-center text-white hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-primary-500 z-20 shadow-xl transition-all hover:scale-110"
              >
                 <ChevronLeft className="w-6 h-6" />
@@ -336,6 +338,7 @@ export default function App() {
              
              <button 
                 onClick={handleNextSolution}
+                aria-label="查看下一个临床场景"
                 className="absolute right-2 md:-right-6 top-1/2 -translate-y-1/2 w-12 h-12 bg-slate-800 border border-slate-600 rounded-full flex items-center justify-center text-white hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-primary-500 z-20 shadow-xl transition-all hover:scale-110"
              >
                 <ChevronRight className="w-6 h-6" />
@@ -603,25 +606,49 @@ export default function App() {
                 onSubmit={async (e) => {
                   e.preventDefault();
                   setFormStatus('loading');
-                  const formData = new FormData(e.currentTarget);
+                  setFormError('');
+                  const form = e.currentTarget;
+                  const formData = new FormData(form);
                   formData.append('access_key', '08e647fa-8372-4420-8260-46892d8c9993');
+                  formData.append('subject', '医联智芯｜新试用申请');
+                  formData.append('from_name', '医联智芯智能科技（上海）有限公司');
                   try {
                     const res = await fetch('https://api.web3forms.com/submit', {
                       method: 'POST',
                       body: formData,
                     });
-                    const data = await res.json();
-                    setFormStatus(data.success ? 'success' : 'error');
+                    const data = await res.json().catch(() => null);
+                    if (res.ok && data?.success) {
+                      setFormStatus('success');
+                      form.reset();
+                    } else {
+                      setFormStatus('error');
+                      setFormError(
+                        res.status === 429
+                          ? '提交过于频繁，请稍后再试。'
+                          : '提交未能送达，请稍后重试或通过其他方式联系我们。'
+                      );
+                    }
                   } catch {
                     setFormStatus('error');
+                    setFormError('网络连接异常，请检查网络后重试。');
                   }
                 }}
               >
+                <input
+                  type="checkbox"
+                  name="botcheck"
+                  className="hidden"
+                  tabIndex={-1}
+                  autoComplete="off"
+                  aria-hidden="true"
+                />
                 <input
                   type="text"
                   name="name"
                   required
                   placeholder="您的姓名"
+                  autoComplete="name"
                   className="w-full px-5 py-3 rounded-xl bg-white/10 border border-white/20 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-white/50 transition-all font-medium"
                 />
                 <input
@@ -629,6 +656,15 @@ export default function App() {
                   name="hospital"
                   required
                   placeholder="所属医院及科室"
+                  autoComplete="organization"
+                  className="w-full px-5 py-3 rounded-xl bg-white/10 border border-white/20 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-white/50 transition-all font-medium"
+                />
+                <input
+                  type="email"
+                  name="email"
+                  required
+                  placeholder="工作邮箱"
+                  autoComplete="email"
                   className="w-full px-5 py-3 rounded-xl bg-white/10 border border-white/20 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-white/50 transition-all font-medium"
                 />
                 <input
@@ -636,10 +672,29 @@ export default function App() {
                   name="phone"
                   required
                   placeholder="联系电话"
+                  autoComplete="tel"
+                  inputMode="tel"
                   className="w-full px-5 py-3 rounded-xl bg-white/10 border border-white/20 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-white/50 transition-all font-medium"
                 />
+                <label className="flex items-start gap-3 text-left text-sm text-primary-100/90">
+                  <input
+                    type="checkbox"
+                    name="privacy_consent"
+                    value="已同意"
+                    required
+                    className="mt-1 h-4 w-4 shrink-0 accent-white"
+                  />
+                  <span>
+                    我同意提交以上信息用于产品试用联系，并知悉表单由 Web3Forms 提供传输服务。
+                  </span>
+                </label>
+                <p className="text-left text-xs text-primary-100/70">
+                  请勿填写患者姓名、病历内容或其他敏感医疗信息。
+                </p>
                 {formStatus === 'error' && (
-                  <p className="text-red-300 text-sm text-center">提交失败，请检查网络连接后重试。</p>
+                  <p className="text-red-200 text-sm text-center" role="alert" aria-live="polite">
+                    {formError || '提交失败，请稍后重试。'}
+                  </p>
                 )}
                 <button
                   type="submit"
@@ -659,9 +714,9 @@ export default function App() {
           <div className="flex flex-col md:flex-row items-center justify-between text-slate-500 text-sm border-t border-slate-800 pt-8">
             <div className="flex items-center gap-2 mb-4 md:mb-0">
                <Activity className="w-4 h-4 text-slate-400" />
-               <span className="font-bold text-slate-400">MediAI | 医用级专业辅助</span>
+               <span className="font-bold text-slate-400">医联智芯 | 医用级专业辅助</span>
             </div>
-            <p>© {new Date().getFullYear()} MediAI Team. All rights reserved.</p>
+            <p>© {new Date().getFullYear()} 医联智芯智能科技（上海）有限公司. All rights reserved.</p>
           </div>
         </div>
       </footer>

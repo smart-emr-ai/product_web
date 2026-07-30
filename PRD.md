@@ -93,7 +93,7 @@ CTA按钮：[申请科室试用] （跳转底部分页联系表格）
 ### 底部分页
 
 “立即开启 3 个月低门槛试用计划”，按钮【申请试用】，底部通过卡片展示联系表单，引导转化，降低获客成本。
-**技术方案：** 使用 Formspree 做免后端的表单收集服务（当前使用 action="https://formspree.io/f/xyzkbwpg"），前端仅作视觉和必填校验，后续修改 action ID 即可投入获客使用。
+**技术方案：** 使用 Web3Forms 做免自建后端的表单收集服务。前端通过 `https://api.web3forms.com/submit` 提交姓名、医院/科室、工作邮箱和联系电话，并包含必填校验、隐私告知、隐藏 honeypot 反机器人字段及明确的提交错误提示。Web3Forms access key 为客户端公开标识，不是私密 API 密钥；正式运营前仍需评估跨境数据处理与隐私合规要求，并按需在 Web3Forms 后台启用 hCaptcha 或付费域名限制。
 
 ## 三、 页面交互逻辑 (Interaction Logic)
 
