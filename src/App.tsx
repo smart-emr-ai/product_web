@@ -243,6 +243,7 @@ export default function App() {
                     index === heroIndex ? 'w-12 bg-white' : 'w-8 bg-white/30 hover:bg-white/50',
                   )}
                   aria-label={`切换到首屏 ${index + 1}`}
+                  aria-pressed={index === heroIndex}
                 />
               ))}
             </div>
@@ -439,6 +440,7 @@ export default function App() {
                         ? 'bg-primary-500 text-white shadow-sm'
                         : 'bg-slate-100 text-slate-600 hover:bg-slate-200',
                     )}
+                    aria-pressed={activeDepartment === index}
                   >
                     <Icon className="h-4 w-4" />
                     {dept.name}
